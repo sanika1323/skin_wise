@@ -1,4 +1,4 @@
-# SkinWise AI — Your skin, understood.
+# SkinWise AI 
 
 **YouCam API Skin AI Hackathon entry.** SkinWise turns a real YouCam AI skin analysis into practical decisions — and checks the products you already own *before* recommending anything new.
 
