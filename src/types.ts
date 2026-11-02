@@ -78,3 +78,28 @@ export type Routine = {
   PM: { steps: RoutineStep[]; updatedAt: string | null };
   logs: Record<string, { AM: string[]; PM: string[] }>;
 };
+
+/** A real retailer listing recommended by SkinWise AI for a routine step (never auto-added to My Products). */
+export type RecOffer = { retailer: string; price: number; link: string | null };
+export type Recommendation = {
+  id: string;
+  name: string;
+  fullTitle: string;
+  brand: string;
+  image: string | null;
+  size: string | null;
+  price: number;
+  mrp: number | null;
+  retailer: string;
+  link: string | null;
+  priceeLink: string | null;
+  priceCheckedAt: string | null;
+  storesCompared: number;
+  offers: RecOffer[];
+  score: number;
+  breakdown: { suitability: number; affordability: number; trustedBrand: number };
+  why: string[];
+  category: RoutineCategory;
+};
+export type RecResult = { need: { category: RoutineCategory; role: string; reason: string; source: string; keywords: string[] }; products: Recommendation[]; totalFound?: number; afterBudget?: number; error?: string };
+export type RecResponse = { results: Partial<Record<RoutineCategory, RecResult>>; budget: number | null; source: string; generatedAt: string };

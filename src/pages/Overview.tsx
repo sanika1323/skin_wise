@@ -129,16 +129,16 @@ export default function Overview() {
           <button className="link" onClick={() => s.go(coverage.missing.length ? "smart-shelf" : "my-products")}>View more <ChevronRight size={15} /></button>
         </div>
         <div className="carousel">
-          {coverage.missing.map((n) => (
+          {coverage.missing.map((n) => { const pick = s.picksFor(n.category)[0]; return (
             <button key={n.category} className="foryou" onClick={() => s.go("smart-shelf")}>
               <span>
                 <span className="icon-bubble grad sm" style={{ marginBottom: 12 }}><ShoppingBag size={15} /></span>
                 <b>{n.role}</b>
-                <small>{n.source === "assessment" ? "From your scan" : n.source === "goal" ? "From your goals" : "Core step"}</small>
+                <small>{pick ? `AI pick from ₹${pick.price.toLocaleString("en-IN")}` : n.source === "assessment" ? "From your AI scan" : n.source === "goal" ? "From your goals" : "Core step"}</small>
               </span>
-              <span className="fab-plus"><ArrowRight size={16} /></span>
+              {pick ? <ProductImage src={pick.image} alt={pick.name} bubbles /> : <span className="fab-plus"><ArrowRight size={16} /></span>}
             </button>
-          ))}
+          ); })}
           {shelf.slice(0, 6).map((p) => (
             <button key={p.id} className="foryou" onClick={() => s.go("my-products")}>
               <span>

@@ -1,10 +1,12 @@
 import { useState } from "react";
-import { ArrowDown, ArrowUp, Check, ChevronDown, Clock, Cloud, Droplets, Eye, FlaskConical, Flame, Info, Moon, Package, Pipette, Plus, RefreshCw, ShieldCheck, Smile, Sparkle, Sparkles, Sun, Trash2, Wand2, Waves, type LucideIcon } from "lucide-react";
+import { ShoppingCart, ArrowDown, ArrowUp, Check, ChevronDown, Clock, Cloud, Droplets, Eye, FlaskConical, Flame, Info, Moon, Package, Pipette, Plus, RefreshCw, ShieldCheck, Smile, Sparkle, Sparkles, Sun, Trash2, Wand2, Waves, type LucideIcon } from "lucide-react";
 import { useStore } from "../store";
 import * as api from "../services/api";
 import type { RoutineCategory, RoutineStep } from "../types";
 import { CATEGORY_HOWTO, ROUTINE_CATEGORIES, categorize, generateRoutine, todayKey } from "../lib/engine";
 import { Empty, Ring, imgSources } from "../components/ui";
+import { BudgetBar, CostSummary, RecCard, inr } from "../components/Recs";
+import { useEffect, useRef } from "react";
 
 const CAT: Record<RoutineCategory, { icon: LucideIcon; g: string }> = {
   Cleanser: { icon: Droplets, g: "linear-gradient(135deg,#67E8F9,#0EA5E9)" },
@@ -51,6 +53,15 @@ export default function RoutinePage() {
     } catch (e) { s.toast((e as Error).message, true); }
   }
 
+  // First visit with no routine: build one automatically (never overwrites an existing routine).
+  const autoBuilt = useRef(false);
+  useEffect(() => {
+    if (!s.ready || !r || has || autoBuilt.current) return;
+    autoBuilt.current = true;
+    void persist(generateRoutine(s.needs, s.shelf), "AI routine built from your scan, goals and shelf");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [s.ready, r, has]);
+
   async function generate() {
     if (has && !window.confirm("Replace your current AM and PM routine with a freshly generated one? Your edits will be lost.")) return;
     setBusy(true);
@@ -96,6 +107,8 @@ export default function RoutinePage() {
             <div className="ritual v3">
               {steps.map((st, i) => {
                 const product = s.shelf.find((p) => p.id === st.productId);
+                const picks = product ? [] : s.picksFor(st.category);
+                const pick = picks[0];
                 const isDone = day[slot]?.includes(st.id);
                 const expanded = open === st.id;
                 const options = s.shelf.filter((p) => categorize(p) === st.category);
@@ -103,17 +116,18 @@ export default function RoutinePage() {
                 return (
                   <div key={st.id} className={`step-card ${isDone ? "done" : ""}`}>
                     <button className="step-check" onClick={() => s.toggleStep(slot, st.id)} aria-label={isDone ? "Mark not done" : "Mark done"} aria-pressed={isDone}><Check size={15} /></button>
-                    <div style={{ position: "relative" }}><span className="step-num">{i + 1}</span><CatIcon cat={st.category} src={product?.imageUrl} /></div>
+                    <div style={{ position: "relative" }}><span className="step-num">{i + 1}</span><CatIcon cat={st.category} src={product?.imageUrl || pick?.image} /></div>
                     <div className="step-body">
                       <span className="cat">{st.category}</span>
-                      <h4>{product ? product.name : st.name}</h4>
+                      <h4 title={pick?.fullTitle}>{product ? product.name : pick ? (pick.name.toLowerCase().startsWith(pick.brand.toLowerCase().split(' ')[0]) ? pick.name : `${pick.brand} · ${pick.name}`) : st.name}</h4>
                       <div className="meta-chips">
-                        {product ? <span className="mchip ok"><Package size={11} /> Owned</span> : <span className="mchip warn"><Package size={11} /> Not assigned</span>}
+                        {product ? <span className="mchip ok"><Package size={11} /> Owned</span> : pick ? <><span className="mchip opt"><Sparkles size={11} /> AI pick · not owned</span><span className="mchip price">{inr(pick.price)} · {pick.retailer}</span></> : s.recsLoading ? <span className="mchip">Finding AI pick…</span> : <span className="mchip warn"><Package size={11} /> Not assigned</span>}
                         <span className="mchip"><Clock size={11} /> {st.frequency}</span>
                         {st.optional && <span className="mchip opt"><Sparkle size={11} /> Optional</span>}
                       </div>
                     </div>
                     <div className="step-tools">
+                      {pick?.link && <a className="btn btn-primary btn-sm" href={pick.link} target="_blank" rel="noopener noreferrer" title={`Buy on ${pick.retailer}`}><ShoppingCart size={13} /> Buy</a>}
                       <button className="icon-btn sm ghost" onClick={() => move(i, -1)} disabled={i === 0} aria-label="Move up"><ArrowUp size={14} /></button>
                       <button className="icon-btn sm ghost" onClick={() => move(i, 1)} disabled={i === steps.length - 1} aria-label="Move down"><ArrowDown size={14} /></button>
                       <button className="icon-btn sm ghost" onClick={() => setOpen(expanded ? null : st.id)} aria-expanded={expanded} aria-label="Details"><ChevronDown size={15} style={{ transform: expanded ? "rotate(180deg)" : "none", transition: "transform .2s" }} /></button>
@@ -121,6 +135,7 @@ export default function RoutinePage() {
                     {expanded && (
                       <div className="step-detail">
                         <div className="why"><Info size={14} /><span><b>Why this step:</b> {st.reason || "Added by you."}</span></div>
+                        {picks.length > 0 && <div className="rec-grid compact">{picks.map((p, k) => <RecCard key={p.id} p={p} rank={k} compact />)}</div>}
                         <p className="small" style={{ color: "var(--ink-2)" }}>{st.instructions}</p>
                         <div className="grid-2" style={{ gap: 10 }}>
                           <label className="field"><span>Assigned product</span>
@@ -160,6 +175,10 @@ export default function RoutinePage() {
                 <Ring value={steps.length ? Math.round((done / steps.length) * 100) : 0} size={96} stroke={9} label={<span style={{ fontSize: 22 }}>{done}/{steps.length}</span>} />
                 <div><span className="eyebrow">Today · {slot === "AM" ? "Morning" : "Evening"}</span><h3 className="h3" style={{ marginTop: 6 }}>{done === steps.length && steps.length ? "Ritual complete" : "Keep going"}</h3><p className="small row" style={{ marginTop: 4, gap: 6 }}><Check size={13} /> Tap circles to log</p></div>
               </div>
+            </div>
+            <div className="card stack" style={{ gap: 14 }}>
+              <BudgetBar />
+              <CostSummary />
             </div>
             <div className="card streak">
               <span className="big-ico"><Flame size={26} /></span>

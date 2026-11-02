@@ -6,6 +6,7 @@ import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import multer from 'multer';
+import { recommendForNeed, IMAGE_HOSTS } from './recommend.js';
 
 dotenv.config({ path: fileURLToPath(new URL('../.env', import.meta.url)) }); // works from any working directory
 const app = express();
@@ -182,7 +183,7 @@ app.get('/api/products/search', async (req, res) => {
 });
 
 // Same-origin image proxy for catalog photos (avoids hot-link / referrer / mixed-origin issues).
-const IMG_HOSTS = /^https:\/\/(images|static|world)\.openbeautyfacts\.org\//i;
+const IMG_HOSTS = IMAGE_HOSTS;
 app.get('/api/img', async (req, res) => {
   const u = String(req.query.u || '');
   if (!IMG_HOSTS.test(u)) return res.status(400).end();
@@ -193,6 +194,35 @@ app.get('/api/img', async (req, res) => {
     res.set({ 'Content-Type': type, 'Cache-Control': 'public, max-age=86400' });
     res.send(Buffer.from(await r.arrayBuffer()));
   } catch { res.status(504).end(); }
+});
+
+/* --------------------------- AI recommendations ---------------------------- */
+// Needs (routine steps + ingredient keywords) are derived on the client from the latest YouCam
+// assessment and the user's goals; here we find real products with live prices for them.
+const REC_CATEGORIES = new Set(['Cleanser', 'Toner', 'Serum', 'Treatment', 'Moisturizer', 'Sunscreen', 'Eye care', 'Mask', 'Exfoliant']);
+app.post('/api/recommendations', async (req, res) => {
+  const needs = (Array.isArray(req.body?.needs) ? req.body.needs : [])
+    .filter((n) => n && REC_CATEGORIES.has(String(n.category)))
+    .slice(0, 8)
+    .map((n) => ({ category: String(n.category), role: String(n.role || n.category).slice(0, 60), reason: String(n.reason || '').slice(0, 240), source: String(n.source || 'core'), keywords: (Array.isArray(n.keywords) ? n.keywords : []).map((k) => String(k).toLowerCase().slice(0, 30)).slice(0, 8) }));
+  const rawBudget = req.body?.budget;
+  const budget = rawBudget === null || rawBudget === undefined || rawBudget === '' ? null : Number(rawBudget);
+  if (budget !== null && (!Number.isFinite(budget) || budget <= 0)) return res.status(400).json({ error: 'Budget must be a positive amount.' });
+  if (!needs.length) return res.json({ results: {}, budget, source: 'Pricee', generatedAt: new Date().toISOString() });
+  try {
+    const profile = { ...DEFAULT_PROFILE, ...(await readJson('profile.json', DEFAULT_PROFILE)) };
+    const shelf = await readShelf();
+    const results = {};
+    await Promise.all(needs.map(async (need) => {
+      const owned = shelf.map((p) => p.name); // never recommend something already on the shelf
+      try { results[need.category] = { need, ...(await recommendForNeed(need, profile, budget, owned)) }; }
+      catch (error) { console.error(`Recommendations for ${need.category} failed:`, error.message); results[need.category] = { need, products: [], error: 'Live prices are unavailable right now. Please retry in a moment.' }; }
+    }));
+    res.json({ results, budget, source: 'Pricee', generatedAt: new Date().toISOString() });
+  } catch (error) {
+    console.error('Recommendations failed:', error.message);
+    res.status(502).json({ error: 'Could not load product recommendations right now.' });
+  }
 });
 
 /* -------------------------------- Shelf ----------------------------------- */

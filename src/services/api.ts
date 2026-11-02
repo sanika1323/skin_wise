@@ -1,4 +1,4 @@
-import type { Assessment, CatalogProduct, Profile, Routine, ShelfProduct } from "../types";
+import type { Assessment, CatalogProduct, Profile, RecResponse, Routine, ShelfProduct } from "../types";
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
 
@@ -70,3 +70,7 @@ export const deleteAssessment = (id: string) =>
   api<{ ok: true }>(`/api/skin-analysis/${encodeURIComponent(id)}`, { method: "DELETE" });
 export const updateAssessmentNote = async (id: string, note: string) =>
   (await api<{ assessment: Assessment }>(`/api/skin-analysis/${encodeURIComponent(id)}`, { method: "PATCH", body: JSON.stringify({ note }) })).assessment;
+
+/* AI product recommendations with live prices (Pricee) */
+export const getRecommendations = (needs: { category: string; role: string; reason: string; source: string; keywords: string[] }[], budget: number | null) =>
+  api<RecResponse>("/api/recommendations", { method: "POST", body: JSON.stringify({ needs, budget }) });

@@ -873,3 +873,36 @@ img { display: block; max-width: 100%; }
 .trend-box .recharts-area-curve { filter: drop-shadow(0 6px 10px rgba(124,58,237,.35)); }
 .rec-grid { grid-template-columns: repeat(auto-fill, minmax(240px, 300px)); }
 @media (max-width: 760px) { .rec-grid { grid-template-columns: 1fr; } }
+
+/* ==========================================================================
+   v5 — AI picks with live prices
+   ========================================================================== */
+.shop-bar { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 380px); gap: 20px; align-items: start; }
+.budget-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 14px 16px; border-radius: 22px; background: rgba(255,255,255,.85); border: 1px solid #fff; box-shadow: var(--sh-1); }
+.card .budget-bar { padding: 0; background: none; border: 0; box-shadow: none; }
+.bb-label { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 800; color: var(--charcoal); margin-right: 4px; }
+.cost-card { display: grid; gap: 12px; padding: 18px; border-radius: 24px; background: linear-gradient(150deg, #FFF7ED 0%, #FDF2F8 100%); border: 1px solid #fff; box-shadow: var(--sh-1); }
+.card .cost-card { box-shadow: none; }
+.cost-ico { width: 46px; height: 46px; border-radius: 16px; display: grid; place-items: center; color: #fff; background: linear-gradient(135deg, #FB923C, #EC4899); box-shadow: 0 10px 20px -10px rgba(236,72,153,.8); }
+.cost-total { font-size: 28px; font-weight: 800; letter-spacing: -.03em; line-height: 1.1; }
+.cost-lines { display: grid; gap: 6px; }
+.cost-lines > div { display: flex; justify-content: space-between; gap: 10px; font-size: 12.5px; font-weight: 600; color: var(--ink-2); padding: 6px 10px; border-radius: 10px; background: rgba(255,255,255,.7); }
+.cost-lines > div b { font-weight: 800; color: var(--charcoal); }
+.cost-lines .owned { color: #0F8A58; } .cost-lines .owned span { display: inline-flex; align-items: center; gap: 5px; }
+.cost-lines .na { color: var(--ink-3); }
+.price-row { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; margin: 2px 0 2px; }
+.price-row b { font-size: 22px; font-weight: 800; letter-spacing: -.03em; }
+.price-row s { font-size: 13px; color: var(--ink-3); }
+.offer-list { display: grid; gap: 4px; margin-top: 6px; }
+.offer-list a { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 10px; background: #F7F4FE; font-size: 12px; font-weight: 700; color: var(--charcoal); text-decoration: none; }
+.offer-list a span { flex: 1; } .offer-list a:hover { background: var(--lavender); }
+.price-src { padding: 0 18px 14px; }
+.rec3 .pfoot .btn { flex: 1; text-decoration: none; }
+.mchip.price { color: var(--charcoal); background: #FFF0DD; }
+button.mchip { cursor: pointer; border: 0; }
+.gap-from { font-size: 12.5px; color: var(--ink-3); font-weight: 600; white-space: nowrap; } .gap-from b { font-size: 18px; color: var(--charcoal); }
+.rec-grid.compact { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; }
+.pcard.compact .pbody { padding: 12px 14px; } .pcard.compact .pfoot { padding: 0 14px 12px; } .pcard.compact .price-src { padding: 0 14px 12px; }
+.pcard.compact .score-orb { display: none; }
+.step-tools a.btn { height: 32px; padding: 0 12px; text-decoration: none; }
+@media (max-width: 900px) { .shop-bar { grid-template-columns: 1fr; } }

@@ -1,15 +1,13 @@
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import {
   AlertCircle, ArrowRight, Bookmark, BookmarkCheck, Camera, Check, Cloud, Droplets, Eye, FlaskConical, Heart, Info, Loader2,
   Package, Pipette, Plus, Puzzle, ScanFace, Search, ShieldCheck, Smile, Sparkle, Sparkles, Sun, Target, Wallet, Waves, X, type LucideIcon,
 } from "lucide-react";
 import { useStore } from "../store";
-import * as api from "../services/api";
-import type { CatalogProduct, RoutineCategory } from "../types";
-import { fmtDate, rankCandidates, type Need, type Ranked } from "../lib/engine";
-import { Meter, ProductImage, Ring, imgSources } from "../components/ui";
-import { ProductModal } from "../components/ProductModal";
-import { useSaved } from "../lib/saved";
+import type { RoutineCategory } from "../types";
+import { fmtDate, type Need } from "../lib/engine";
+import { Ring, imgSources } from "../components/ui";
+import { BudgetBar, CostSummary, RecCard, inr } from "../components/Recs";
 
 const CAT: Record<RoutineCategory, { icon: LucideIcon; g: string; c: string }> = {
   Cleanser: { icon: Droplets, g: "linear-gradient(135deg,#67E8F9,#0EA5E9)", c: "#0EA5E9" },
@@ -24,10 +22,9 @@ const CAT: Record<RoutineCategory, { icon: LucideIcon; g: string; c: string }> =
   Other: { icon: Package, g: "linear-gradient(135deg,#CBD5E1,#64748B)", c: "#64748B" },
 };
 const WEIGHTS = [
-  { icon: Target, label: "Goal match", w: 35, g: "linear-gradient(135deg,#C4B5FD,#7C3AED)" },
-  { icon: Heart, label: "Preferences", w: 25, g: "linear-gradient(135deg,#F9A8D4,#DB2777)" },
-  { icon: Wallet, label: "Budget", w: 20, g: "linear-gradient(135deg,#FCD34D,#F97316)" },
-  { icon: Puzzle, label: "Fills gap", w: 20, g: "linear-gradient(135deg,#5EEAD4,#0EA5E9)" },
+  { icon: Target, label: "Skin suitability", w: 50, g: "linear-gradient(135deg,#C4B5FD,#7C3AED)" },
+  { icon: Wallet, label: "Value for money", w: 25, g: "linear-gradient(135deg,#FCD34D,#F97316)" },
+  { icon: Heart, label: "Trusted brand", w: 25, g: "linear-gradient(135deg,#F9A8D4,#DB2777)" },
 ];
 
 function SlotImg({ src }: { src?: string | null }) {
@@ -98,6 +95,11 @@ export default function SmartShelf() {
         </div>
       </div>
 
+      <div className="shop-bar">
+        <BudgetBar />
+        {coverage.missing.length > 0 && <CostSummary />}
+      </div>
+
       {!latest && <div className="callout"><Camera size={18} /><div>Run an AI scan to add focus-area steps. <button className="link" onClick={() => s.go("analysis")}>Scan now →</button></div></div>}
 
       {coverage.noPurchaseNeeded && shelf.length > 0 && (
@@ -121,7 +123,7 @@ export default function SmartShelf() {
             <div key={w.label} className="fseg" style={{ flex: w.w, background: w.g }}><I size={16} /><b>{w.w}%</b><small>{w.label}</small></div>
           ); })}
         </div>
-        <p className="tiny row" style={{ gap: 6 }}><Info size={12} /> Missing data (e.g. price) is skipped, never guessed.</p>
+        <p className="tiny row" style={{ gap: 6 }}><Info size={12} /> Only in-stock products within your budget · lowest live price via Pricee · nothing is guessed.</p>
       </div>
     </section>
   );
@@ -129,23 +131,11 @@ export default function SmartShelf() {
 
 function GapRecommendations({ need }: { need: Need }) {
   const s = useStore();
-  const saved = useSaved();
-  const [state, setState] = useState<"idle" | "loading" | "done" | "error">("idle");
-  const [items, setItems] = useState<CatalogProduct[]>([]);
-  const [err, setErr] = useState("");
-  const [detail, setDetail] = useState<Ranked | null>(null);
-  const [open, setOpen] = useState<string | null>(null);
   const c = CAT[need.category] || CAT.Other; const CI = c.icon;
-
-  async function load() {
-    setState("loading"); setErr("");
-    try { setItems(await api.searchCatalog(need.query)); setState("done"); }
-    catch (e) { setErr((e as Error).message); setState("error"); }
-  }
-  useEffect(() => { void load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [need.query]);
-
-  const owned = useMemo(() => new Set(s.shelf.map((p) => p.code)), [s.shelf]);
-  const ranked = useMemo(() => rankCandidates(need, items, s.profile, owned).filter((r) => !saved.dismissed.includes(r.product.code)).slice(0, 3), [need, items, s.profile, owned, saved.dismissed]);
+  const r = s.recs?.results?.[need.category];
+  const products = r?.products || [];
+  const loading = s.recsLoading && !r;
+  const err = r?.error || (!r && s.recsError);
 
   return (
     <div className="gap-block" id={`gap-${need.category}`} style={{ scrollMarginTop: 90 }}>
@@ -160,55 +150,16 @@ function GapRecommendations({ need }: { need: Need }) {
           </div>
           {need.keywords.length > 0 && <div className="meta-chips" style={{ marginTop: 6 }}>{need.keywords.slice(0, 4).map((k) => <span key={k} className="mchip"><FlaskConical size={11} /> {k}</span>)}</div>}
         </div>
+        {products[0] && <span className="gap-from">from <b>{inr(Math.min(...products.map((p) => p.price)))}</b></span>}
       </div>
 
-      {state === "loading" && <div className="rec-grid">{[0, 1, 2].map((i) => <div key={i} className="pcard"><div className="skeleton" style={{ aspectRatio: "1", margin: 10, borderRadius: 20 }} /><div className="pbody"><div className="skeleton" style={{ height: 14 }} /></div></div>)}</div>}
-      {state === "error" && <div className="callout rose"><AlertCircle size={18} /><div>{err} <button className="link" onClick={load}>Retry</button></div></div>}
-      {state === "done" && ranked.length === 0 && <div className="callout"><Search size={18} /><div>No matching catalog item — we won't invent one. <button className="link" onClick={() => s.go("discover")}>Search →</button></div></div>}
-
-      {ranked.length > 0 && (
-        <div className="rec-grid">
-          {ranked.map((r, idx) => (
-            <article key={r.product.code} className="pcard rec3">
-              <ProductImage src={r.product.imageUrl} alt={r.product.name}>
-                <div className="corner">
-                  {idx === 0 ? <span className="ai-badge"><Sparkles size={11} /> Top match</span> : <span />}
-                  <button className="heart-btn" onClick={() => { saved.toggle(r.product); s.toast(saved.isSaved(r.product.code) ? "Removed from saved" : "Saved for later"); }} aria-label="Save">{saved.isSaved(r.product.code) ? <BookmarkCheck size={15} /> : <Bookmark size={15} />}</button>
-                </div>
-                <div className="score-orb">{r.score !== null ? <Ring value={r.score} size={58} stroke={6} label={<span style={{ fontSize: 15 }}>{r.score}</span>} /> : <span className="badge na">Not scored</span>}</div>
-              </ProductImage>
-              <div className="pbody">
-                <span className="pbrand">{r.product.brand}</span>
-                <h4 className="pname">{r.product.name}</h4>
-                <div className="meta-chips">
-                  {r.matched.slice(0, 3).map((m) => <span key={m} className="mchip ok"><Check size={11} /> {m}</span>)}
-                  {r.flags.length > 0 && <span className="mchip warn"><AlertCircle size={11} /> {r.flags[0]}</span>}
-                  {!r.product.ingredients && <span className="mchip">No ingredients</span>}
-                  <span className="mchip"><Wallet size={11} /> No price</span>
-                </div>
-                {open === r.product.code && (
-                  <div className="score-break" style={{ marginTop: 8 }}>
-                    {r.components.map((comp) => (
-                      <div key={comp.key} className="sb" title={comp.note}>
-                        <span>{comp.label}</span>
-                        {comp.value !== null ? <Meter value={comp.value} /> : <span className="tiny">n/a</span>}
-                        <em>{comp.value ?? "—"}</em>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-              <div className="pfoot">
-                <button className="btn btn-primary btn-sm" onClick={() => setDetail(r)}>Details</button>
-                <button className="icon-btn sm" onClick={() => setOpen(open === r.product.code ? null : r.product.code)} aria-label="Why this score" title="Why this score?"><Info size={14} /></button>
-                <button className="icon-btn sm" onClick={() => saved.dismiss(r.product.code)} aria-label="Dismiss" title="Dismiss"><X size={14} /></button>
-              </div>
-            </article>
-          ))}
-        </div>
+      {loading && <div className="rec-grid">{[0, 1, 2].map((i) => <div key={i} className="pcard"><div className="skeleton" style={{ aspectRatio: "1", margin: 10, borderRadius: 20 }} /><div className="pbody"><div className="skeleton" style={{ height: 14 }} /><div className="skeleton" style={{ height: 22, width: "40%" }} /></div></div>)}</div>}
+      {!loading && err && <div className="callout rose"><AlertCircle size={18} /><div>{err} <button className="link" onClick={s.refreshRecs}>Retry</button></div></div>}
+      {!loading && !err && r && products.length === 0 && (
+        <div className="callout amber"><Wallet size={18} /><div>{(r.totalFound || 0) > 0 && s.budget !== null ? <>No suitable {need.role.toLowerCase()} under {inr(s.budget)}. <button className="link" onClick={() => s.setBudget(null)}>Show any price →</button></> : <>No suitable in-stock product was found for this step right now — we won't show an unrelated one.</>}</div></div>
       )}
-      {ranked.length > 0 && <button className="tiny link" style={{ fontSize: 12 }} onClick={() => s.go("my-products")}><Package size={12} /> Already own one? Add it — gap closes.</button>}
-      {detail && <ProductModal product={detail.product} keywords={need.keywords} defaultCategory={need.category} reason={`Suggested for your ${need.role.toLowerCase()} gap. ${need.reason}`} onClose={() => setDetail(null)} />}
+      {products.length > 0 && <div className="rec-grid">{products.map((p, i) => <RecCard key={p.id} p={p} rank={i} />)}</div>}
+      {products.length > 0 && <button className="tiny link" style={{ fontSize: 12 }} onClick={() => s.go("my-products")}><Package size={12} /> Already own one? Add it to My Products — this gap closes.</button>}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import * as api from "./services/api";
-import type { Assessment, Profile, Routine, ShelfProduct } from "./types";
+import type { Assessment, Profile, RecResponse, Recommendation, Routine, RoutineCategory, ShelfProduct } from "./types";
 import { computeCoverage, deriveNeeds, latestCompleted, todayKey, type Coverage, type Need } from "./lib/engine";
 
 export type Page = "overview" | "analysis" | "profile" | "routine" | "smart-shelf" | "discover" | "my-products" | "journey" | "assistant" | "settings";
@@ -12,6 +12,9 @@ type Store = {
   providerReady: boolean | null;
   profile: Profile | null; shelf: ShelfProduct[]; routine: Routine | null; assessments: Assessment[];
   latest: Assessment | null; needs: Need[]; coverage: Coverage;
+  recs: RecResponse | null; recsLoading: boolean; recsError: string; refreshRecs: () => void;
+  picksFor: (category: RoutineCategory) => Recommendation[];
+  budget: number | null; setBudget: (b: number | null) => Promise<void>;
   toasts: Toast[]; toast: (text: string, error?: boolean) => void;
   reload: () => Promise<void>;
   setAssessments: (fn: (a: Assessment[]) => Assessment[]) => void;
@@ -69,6 +72,39 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const needs = useMemo(() => deriveNeeds(profile, latest), [profile, latest]);
   const coverage = useMemo(() => computeCoverage(needs, shelf), [needs, shelf]);
 
+  /* ---- AI recommendations: every routine step that has no owned product gets real, priced picks ---- */
+  const [recs, setRecs] = useState<RecResponse | null>(null);
+  const [recsLoading, setRecsLoading] = useState(false);
+  const [recsError, setRecsError] = useState("");
+  const [recsNonce, setRecsNonce] = useState(0);
+  const budget = profile?.budget ?? null;
+  const recNeeds = useMemo(() => {
+    const list = coverage.missing.map((n) => ({ category: n.category, role: n.role, reason: n.reason, source: n.source, keywords: n.keywords }));
+    const steps = routine ? [...routine.AM.steps, ...routine.PM.steps] : [];
+    for (const st of steps) {
+      if (st.productId && shelf.some((p) => p.id === st.productId)) continue;
+      if (st.category === "Other" || list.some((n) => n.category === st.category)) continue;
+      const need = needs.find((n) => n.category === st.category);
+      list.push({ category: st.category, role: need?.role || st.name, reason: need?.reason || st.reason, source: need?.source || "core", keywords: need?.keywords || [] });
+    }
+    return list;
+  }, [coverage.missing, routine, shelf, needs]);
+  const recKey = JSON.stringify([recNeeds, budget, recsNonce]);
+  useEffect(() => {
+    if (!ready || offline) return;
+    if (!recNeeds.length) { setRecs(null); setRecsError(""); return; }
+    let alive = true;
+    const t = window.setTimeout(async () => {
+      setRecsLoading(true); setRecsError("");
+      try { const r = await api.getRecommendations(recNeeds, budget); if (alive) setRecs(r); }
+      catch (e) { if (alive) setRecsError((e as Error).message); }
+      finally { if (alive) setRecsLoading(false); }
+    }, 350);
+    return () => { alive = false; window.clearTimeout(t); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [recKey, ready, offline]);
+  const picksFor = useCallback((c: RoutineCategory) => recs?.results?.[c]?.products || [], [recs]);
+
   const updateProfile = useCallback(async (patch: Partial<Profile>) => {
     try { setProfile(await api.saveProfile(patch)); toast("Profile saved"); }
     catch (e) { toast((e as Error).message, true); }
@@ -98,6 +134,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     page, go, ready, offline, providerReady, profile, shelf, routine, assessments, latest, needs, coverage, toasts, toast, reload,
     setAssessments: (fn) => setAssessmentsState(fn), setShelf: (fn) => setShelfState(fn), setRoutine,
     updateProfile, removeProduct, toggleStep,
+    recs, recsLoading, recsError, refreshRecs: () => setRecsNonce((n) => n + 1), picksFor,
+    budget, setBudget: async (b) => { try { setProfile(await api.saveProfile({ budget: b })); } catch (e) { toast((e as Error).message, true); } },
   };
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
