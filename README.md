@@ -9,8 +9,8 @@
 1. **Skin Analysis** — photo guidance, drag-and-drop or camera, client-side checks (JPG/PNG, ≤10 MB, shorter side ≥480 px), explicit consent, live status, refresh-safe resume.
 2. **Results** — only metrics YouCam returned (`ui_score`, `raw_score`, mask links). Missing metrics are labelled "Not returned", never filled in.
 3. **Skin Profile** — three visibly separate sources: AI-assessed (YouCam, read-only), self-reported (editable), SkinWise-derived priorities.
-4. **My Routine** — generated AM/PM steps with owned products assigned and a reason for every step. Add, remove, reorder, reassign, mark optional, log daily completion.
-5. **Skin-to-Shelf** — routine coverage %, covered vs. genuine gaps, live Open Beauty Facts search only for missing steps, transparent ranking (`0.35G + 0.25P + 0.20B + 0.20I`, missing inputs excluded — never guessed), save / dismiss / details. "You may not need to buy anything" is a first-class outcome.
+4. **My Routine** — generated AM/PM steps with owned products assigned, an AI pick (price + buy link) for every unowned step, and a reason for every step. Add, remove, reorder, reassign, mark optional, log daily completion.
+5. **Skin-to-Shelf** — routine coverage %, covered vs. genuine gaps, and **AI picks only for missing steps**: real products (image, brand, size) with the lowest verified ₹ price across Indian retailers (via Pricee), retailer name and a direct buy link. Budget filter (Any / ₹300 / ₹500 / ₹1,000 / ₹2,000 / custom), per-item prices and total routine cost. Transparent ranking: 50% skin suitability · 25% value (price per ml/g) · 25% trusted brand. "You may not need to buy anything" is a first-class outcome; recommended items are never auto-added to My Products.
 6. **Discover & My Products** — real catalog records, barcode-verified shelf, compare 2–3 products, expiry/notes/remaining, duplicate prevention.
 7. **Skin Journey** — dated history, like-for-like comparison of shared metrics only, trend chart, 14-day routine consistency, personal notes kept separate.
 8. **Assistant** — rule-based, grounded only in saved SkinWise data; refuses diagnosis.
@@ -21,9 +21,12 @@
 
 ## Run locally (Windows)
 
+Requires **Node.js 20+** and a YouCam API key (https://yce.makeupar.com/api-console/en/api-keys/ — redeem the hackathon code for API units).
+
 1. `INSTALL-WINDOWS.bat` (or `npm install` in the root and in `server/`).
 2. Copy `server/.env.example` → `server/.env` and set `YOUCAM_API_KEY`.
 3. `START-SKINWISE.bat` (or `cd server && npm run dev`, then `npm run dev` in the root).
+   macOS/Linux: `npm install && (cd server && npm install)`, then run `npm run dev` in `server/` and in the root.
 4. Open http://127.0.0.1:5173 — health check: http://127.0.0.1:4000/api/health (`youcamConfigured: true` when the key is set).
 
 ## API
@@ -40,6 +43,8 @@
 | GET / PUT | /api/routine | AM/PM routines |
 | POST | /api/routine/log | Daily step completion |
 | GET | /api/products/search?q= | Open Beauty Facts search |
+| POST | /api/recommendations | AI picks for routine gaps: `{needs, budget}` → products with lowest verified price, retailer, link |
+| GET | /api/img?u= | Image proxy for allow-listed retailer/catalog hosts |
 | GET / POST | /api/shelf | Owned products (barcode-verified) |
 | PATCH / DELETE | /api/shelf/:id | Edit role/usage/expiry/notes; remove (routine steps auto-unassigned) |
 
@@ -52,4 +57,8 @@
 
 ## Stack & limits
 
-React 19 + TypeScript + Vite · Express · JSON persistence (`server/data`, configurable via `DATA_DIR`). Single-user prototype without auth; use a persistent disk or managed DB in production. Open Beauty Facts is community-maintained and has no reliable prices, so budget fit is shown as unavailable rather than estimated.
+React 19 + TypeScript + Vite · Express · JSON persistence (`server/data`, configurable via `DATA_DIR`). Single-user prototype without auth; use a persistent disk or managed DB in production. Prices come from Pricee's public search and are cached on disk (`CACHE_TTL_HOURS`, default 6 h); each pick shows when its price was checked. Open Beauty Facts (Discover / My Products) has no prices, so none are shown there.
+
+## License
+
+Released under the [MIT License](LICENSE).
