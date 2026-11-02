@@ -1,11 +1,90 @@
 {
   "AM": {
-    "steps": [],
-    "updatedAt": null
+    "steps": [
+      {
+        "id": "am-cleanser-0",
+        "productId": null,
+        "category": "Cleanser",
+        "name": "Cleanser",
+        "instructions": "Massage onto damp skin for 30–60 seconds, then rinse with lukewarm water.",
+        "frequency": "Daily",
+        "reason": "A gentle cleanse is the foundation of both routines.",
+        "optional": false,
+        "sortOrder": 0
+      },
+      {
+        "id": "am-serum-1",
+        "productId": null,
+        "category": "Serum",
+        "name": "Hydrating serum",
+        "instructions": "Press 2–3 drops into slightly damp skin before moisturizer.",
+        "frequency": "Daily",
+        "reason": "You set the goal “Deeper hydration”.",
+        "optional": true,
+        "sortOrder": 1
+      },
+      {
+        "id": "am-moisturizer-2",
+        "productId": null,
+        "category": "Moisturizer",
+        "name": "Moisturizer",
+        "instructions": "Warm a small amount between fingertips and press gently into skin.",
+        "frequency": "Daily",
+        "reason": "Supports the skin barrier morning and night.",
+        "optional": false,
+        "sortOrder": 2
+      },
+      {
+        "id": "am-sunscreen-3",
+        "productId": null,
+        "category": "Sunscreen",
+        "name": "Daily sunscreen",
+        "instructions": "Apply generously as the final morning step; reapply when outdoors.",
+        "frequency": "Daily",
+        "reason": "Daytime UV protection belongs in every morning routine.",
+        "optional": false,
+        "sortOrder": 3
+      }
+    ],
+    "updatedAt": "2026-11-02T08:59:17.035Z"
   },
   "PM": {
-    "steps": [],
-    "updatedAt": null
+    "steps": [
+      {
+        "id": "pm-cleanser-0",
+        "productId": null,
+        "category": "Cleanser",
+        "name": "Cleanser",
+        "instructions": "Massage onto damp skin for 30–60 seconds, then rinse with lukewarm water.",
+        "frequency": "Daily",
+        "reason": "A gentle cleanse is the foundation of both routines.",
+        "optional": false,
+        "sortOrder": 0
+      },
+      {
+        "id": "pm-serum-1",
+        "productId": null,
+        "category": "Serum",
+        "name": "Hydrating serum",
+        "instructions": "Press 2–3 drops into slightly damp skin before moisturizer.",
+        "frequency": "Daily",
+        "reason": "You set the goal “Deeper hydration”.",
+        "optional": true,
+        "sortOrder": 1
+      },
+      {
+        "id": "pm-moisturizer-2",
+        "productId": null,
+        "category": "Moisturizer",
+        "name": "Moisturizer",
+        "instructions": "Warm a small amount between fingertips and press gently into skin.",
+        "frequency": "Daily",
+        "reason": "Supports the skin barrier morning and night.",
+        "optional": false,
+        "sortOrder": 2
+      }
+    ],
+    "updatedAt": "2026-11-02T08:59:17.035Z"
   },
   "logs": {}
 }

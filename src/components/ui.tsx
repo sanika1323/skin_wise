@@ -1,5 +1,5 @@
-import { useEffect, useState, type ReactNode } from "react";
-import { CircleDot, Droplets, ExternalLink, Eye, Flame, Gem, Grid3x3, Layers, Package, ScanFace, Sparkles, Sun, Waves, X, Zap, type LucideIcon } from "lucide-react";
+import { useEffect, useId, useState, type ReactNode } from "react";
+import { CircleDot, Droplets, ExternalLink, Eye, Flame, Gem, Grid3x3, Layers, Package, ScanFace, Sparkles, Sun, Target, ThumbsUp, TrendingUp, Waves, X, Zap, type LucideIcon } from "lucide-react";
 import type { SkinMetric } from "../types";
 import { band, displayScore, metricMeta } from "../lib/engine";
 
@@ -11,21 +11,32 @@ export function MetricIcon({ type, size = 16 }: { type: string; size?: number })
   const I = METRIC_ICONS[type.replace(/^hd_/, "")] || Sparkles;
   return <I size={size} strokeWidth={2} />;
 }
-export const TONE_COLOR: Record<string, string> = { good: "#10A363", mid: "#F08A24", focus: "#D9367A", na: "#C4B5FD" };
+export const TONE_COLOR: Record<string, string> = { good: "linear-gradient(90deg,#A78BFA,#7C3AED)", mid: "linear-gradient(90deg,#FBBF24,#F97316)", focus: "linear-gradient(90deg,#F472B6,#DB2777)", na: "#C4B5FD" };
 
-/** Compact circular gauge tile, like a dashboard dial. */
+const TILE_BAND: Record<string, { label: string; icon: LucideIcon }> = {
+  good: { label: "Great", icon: ThumbsUp }, mid: { label: "Fair", icon: TrendingUp }, focus: { label: "Focus", icon: Target }, na: { label: "N/A", icon: Sparkles },
+};
+/** Lighter companion shade for a hex colour (for gradients). */
+export const tint = (hex: string, amt = 0.45) => {
+  const n = parseInt(hex.slice(1), 16); const mix = (c: number) => Math.round(c + (255 - c) * amt);
+  return `#${[(n >> 16) & 255, (n >> 8) & 255, n & 255].map((c) => mix(c).toString(16).padStart(2, "0")).join("")}`;
+};
+
+/** Compact circular gauge tile — each metric in its own colour, with an icon verdict pill. */
 export function RingTile({ m, onClick }: { m: SkinMetric; onClick?: () => void }) {
   const meta = metricMeta(m.type); const v = displayScore(m); const b = band(v);
+  const tb = TILE_BAND[b.tone]; const BI = tb.icon;
   return (
-    <button className="ring-tile" onClick={onClick} type="button">
-      <span className="rt-name"><span className="icon-bubble sm" style={{ background: `${meta.hue}22`, color: meta.hue }}><MetricIcon type={m.type} size={15} /></span>{meta.label}</span>
-      <Ring value={v} size={92} stroke={8} color={TONE_COLOR[b.tone]} label={<span style={{ fontSize: 24 }}>{v ?? "—"}</span>} />
-      <span className={`rt-band tone-${b.tone}`}>{b.label}</span>
+    <button className="ring-tile v3" onClick={onClick} type="button" style={{ ["--hue" as string]: meta.hue, ["--hue-soft" as string]: `${meta.hue}1f` }}>
+      <span className="rt-head"><span className="rt-ico"><MetricIcon type={m.type} size={16} /></span><span className="rt-label">{meta.label}</span></span>
+      <Ring value={v} size={96} stroke={9} grad={[tint(meta.hue, 0.5), meta.hue]} label={<span className="rt-num">{v ?? "—"}</span>} />
+      <span className={`rt-pill t-${b.tone}`}><BI size={12} strokeWidth={2.5} />{tb.label}</span>
     </button>
   );
 }
 
-export function Ring({ value, size = 132, stroke = 10, label, sub, color = "url(#ringGrad)" }: { value: number | null; size?: number; stroke?: number; label?: ReactNode; sub?: string; color?: string }) {
+export function Ring({ value, size = 132, stroke = 10, label, sub, color, grad }: { value: number | null; size?: number; stroke?: number; label?: ReactNode; sub?: string; color?: string; grad?: [string, string] }) {
+  const gid = `rg${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
   const [shown, setShown] = useState(0);
@@ -34,15 +45,15 @@ export function Ring({ value, size = 132, stroke = 10, label, sub, color = "url(
     <div className="ring" style={{ width: size, height: size }}>
       <svg width={size} height={size} aria-hidden="true">
         <defs>
-          <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#F0ABFC" />
-            <stop offset="50%" stopColor="#A78BFA" />
-            <stop offset="100%" stopColor="#7C3AED" />
+          <linearGradient id={gid} x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor={grad ? grad[0] : "#F0ABFC"} />
+            {!grad && <stop offset="50%" stopColor="#A78BFA" />}
+            <stop offset="100%" stopColor={grad ? grad[1] : "#7C3AED"} />
           </linearGradient>
         </defs>
         <circle className="ring-track" cx={size / 2} cy={size / 2} r={r} fill="none" strokeWidth={stroke} />
         {value !== null && (
-          <circle className="ring-bar" cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color} strokeWidth={stroke} strokeLinecap="round" strokeDasharray={c} strokeDashoffset={c - (c * Math.max(0, Math.min(100, shown))) / 100} />
+          <circle className="ring-bar" cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color || `url(#${gid})`} strokeWidth={stroke} strokeLinecap="round" strokeDasharray={c} strokeDashoffset={c - (c * Math.max(0, Math.min(100, shown))) / 100} />
         )}
       </svg>
       <div className="ring-label">
@@ -117,7 +128,7 @@ export function MetricCard({ m }: { m: SkinMetric }) {
         <b>{score ?? "—"}</b>
         {score !== null && <small>/ 100 · ui_score</small>}
       </div>
-      {score !== null && <Meter value={score} color={TONE_COLOR[b.tone]} />}
+      {score !== null && <Meter value={score} color={({ good: "#10A363", mid: "#F08A24", focus: "#D9367A", na: "#C4B5FD" } as Record<string, string>)[b.tone]} />}
       <p className="small">{meta.blurb}</p>
       <div className="between">
         <span className="tiny">{m.rawScore !== null ? `Raw score ${m.rawScore.toFixed(1)}` : "Raw score not returned"}{extras.map(([k, v]) => ` · ${k}: ${v}`).join("")}</span>

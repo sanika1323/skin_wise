@@ -59,7 +59,7 @@ export default function App() {
         <div className="brand">
           <div className="brand-mark"><Sparkles size={19} /></div>
           <div>
-            <div className="brand-name">Skin<em>Wise</em></div>
+            <div className="brand-name row" style={{ gap: 6 }}>Skin<em style={{ marginLeft: -6 }}>Wise</em><span className="ai-badge" style={{ height: 20, fontSize: 10 }}>AI</span></div>
             <div className="brand-tag">Your skin, understood.</div>
           </div>
           <button className="icon-btn sm ghost menu-btn" style={{ marginLeft: "auto" }} onClick={() => setOpen(false)} aria-label="Close menu"><X size={16} /></button>
@@ -108,7 +108,7 @@ export default function App() {
               <input ref={searchRef} value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && q.trim().length >= 2) s.go("discover"); }} placeholder="Search products, brands…" aria-label="Search catalog" />
               <kbd>⌘K</kbd>
             </label>
-            {s.page !== "analysis" && <button className="btn btn-primary" onClick={() => s.go("analysis")}><Camera size={15} /> <span>Analyze</span></button>}
+            {s.page !== "analysis" && <button className="btn btn-primary" onClick={() => s.go("analysis")}><Sparkles size={15} /> <span>AI Skin Scan</span></button>}
           </div>
         </header>
 

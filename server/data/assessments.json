@@ -1,5 +1,281 @@
 [
   {
+    "id": "d165b4f4-cb4c-4009-993e-ef5f345080a1",
+    "providerTaskId": "vXXEBATELazuI49enzt8cPoh_hAo0zMf7oIx_IqDu8M7_ceZCHspv1djLVmyW57_SpcgV8WTLEnG8Q2PXjtLzQ",
+    "status": "failed",
+    "stage": "FAILED",
+    "actions": [
+      "moisture",
+      "redness",
+      "texture",
+      "pore",
+      "acne",
+      "oiliness",
+      "radiance",
+      "dark_circle_v2",
+      "eye_bag"
+    ],
+    "createdAt": "2026-11-02T08:54:58.680Z",
+    "updatedAt": "2026-11-02T08:55:04.141Z",
+    "completedAt": null,
+    "error": "Your face is too small in the frame. Move closer so your face fills most of the photo.",
+    "results": [],
+    "note": "",
+    "consentAcceptedAt": "2026-11-02T08:54:58.680Z"
+  },
+  {
+    "id": "da271ab3-6142-47c3-b1ff-69908cd8bca1",
+    "providerTaskId": "RYdhjdacc0DviLYsEyhlaauZIegHER-JZuMpB5r7u0dR_4uYHUyLmGwgxclJi3GhSpcgV8WTLEnG8Q2PXjtLzQ",
+    "status": "failed",
+    "stage": "FAILED",
+    "actions": [
+      "moisture",
+      "redness",
+      "texture",
+      "pore",
+      "acne",
+      "oiliness",
+      "radiance",
+      "dark_circle_v2",
+      "eye_bag"
+    ],
+    "createdAt": "2026-11-02T08:54:49.908Z",
+    "updatedAt": "2026-11-02T08:54:55.845Z",
+    "completedAt": null,
+    "error": "Your face is too small in the frame. Move closer so your face fills most of the photo.",
+    "results": [],
+    "note": "",
+    "consentAcceptedAt": "2026-11-02T08:54:49.908Z"
+  },
+  {
+    "id": "22b72c6f-2e83-4255-8ae6-da381fba6100",
+    "providerTaskId": "ZAy1kyFotZYvLNA3WDSvICbE6Zn1MByhwTVXZZqXatHcs1FunvY-T-RuedtDtIAuSpcgV8WTLEnG8Q2PXjtLzQ",
+    "status": "failed",
+    "stage": "FAILED",
+    "actions": [
+      "moisture",
+      "redness",
+      "texture",
+      "pore",
+      "acne",
+      "oiliness",
+      "radiance"
+    ],
+    "createdAt": "2026-11-02T08:54:33.596Z",
+    "updatedAt": "2026-11-02T08:54:39.567Z",
+    "completedAt": null,
+    "error": "Your face is too small in the frame. Move closer so your face fills most of the photo.",
+    "results": [],
+    "note": "",
+    "consentAcceptedAt": "2026-11-02T08:54:33.596Z"
+  },
+  {
+    "id": "e7499636-ea5a-48aa-b2b6-84718ea2ed05",
+    "providerTaskId": "pyQljuN-RAj3fFeJtHwmwgbup94qIOgsKns8V9bGtPe_lHDwGADlwkC1Zm1EKxbLSpcgV8WTLEnG8Q2PXjtLzQ",
+    "status": "completed",
+    "stage": "COMPLETED",
+    "actions": [
+      "moisture",
+      "redness",
+      "texture",
+      "pore",
+      "acne",
+      "age_spot",
+      "dark_circle_v2",
+      "oiliness"
+    ],
+    "createdAt": "2026-11-02T08:52:48.343Z",
+    "updatedAt": "2026-11-02T08:52:53.688Z",
+    "completedAt": "2026-11-02T08:52:53.688Z",
+    "error": null,
+    "results": [
+      {
+        "type": "texture",
+        "uiScore": 98,
+        "rawScore": 99.24996495246887,
+        "maskUrls": [
+          "https://yce-us.s3-accelerate.amazonaws.com/ttl30/519456732196384266/124015929967/v2/aeMNNB0KmUIP8rnQ996tC5Q/da01c0d7-d6e9-4f97-bb15-a8ffe3c422e8_texture_output.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20261102T085213Z&X-Amz-SignedHeaders=host&X-Amz-Expires=7200&X-Amz-Credential=AKIARB77EV5Y5D7DAE3S%2F20261102%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Signature=ca0a11d9634fefd56d4f3b981b619841b9df090c5b1b944e3d3a7759da8bd798"
+        ],
+        "extra": {}
+      },
+      {
+        "type": "pore",
+        "uiScore": 90,
+        "rawScore": 93.23604798316956,
+        "maskUrls": [
+          "https://yce-us.s3-accelerate.amazonaws.com/ttl30/519456732196384266/124015929967/v2/aeMNNB0KmUIP8rnQ996tC5Q/da01c0d7-d6e9-4f97-bb15-a8ffe3c422e8_pore_output.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20261102T085213Z&X-Amz-SignedHeaders=host&X-Amz-Expires=7200&X-Amz-Credential=AKIARB77EV5Y5D7DAE3S%2F20261102%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Signature=d5de5cdc34d02cd2ead903d040174c9e303bf81ce87e47adb6b72e0982d59878"
+        ],
+        "extra": {}
+      },
+      {
+        "type": "oiliness",
+        "uiScore": 98,
+        "rawScore": 99.34190368652344,
+        "maskUrls": [
+          "https://yce-us.s3-accelerate.amazonaws.com/ttl30/519456732196384266/124015929967/v2/aeMNNB0KmUIP8rnQ996tC5Q/da01c0d7-d6e9-4f97-bb15-a8ffe3c422e8_oiliness_output.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20261102T085213Z&X-Amz-SignedHeaders=host&X-Amz-Expires=7200&X-Amz-Credential=AKIARB77EV5Y5D7DAE3S%2F20261102%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Signature=cfb85e07448909ac878de34b557b79deec08d6b48887a81ec1a3d304296fbbac"
+        ],
+        "extra": {}
+      },
+      {
+        "type": "redness",
+        "uiScore": 92,
+        "rawScore": 95.03218078613281,
+        "maskUrls": [
+          "https://yce-us.s3-accelerate.amazonaws.com/ttl30/519456732196384266/124015929967/v2/aeMNNB0KmUIP8rnQ996tC5Q/da01c0d7-d6e9-4f97-bb15-a8ffe3c422e8_redness_output.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20261102T085213Z&X-Amz-SignedHeaders=host&X-Amz-Expires=7200&X-Amz-Credential=AKIARB77EV5Y5D7DAE3S%2F20261102%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Signature=c06e78bbb2bc397f300e7bf2d70e302e7c6e1bb30ec835c179c57fb4c4040824"
+        ],
+        "extra": {}
+      },
+      {
+        "type": "age_spot",
+        "uiScore": 98,
+        "rawScore": 99.56324005126953,
+        "maskUrls": [
+          "https://yce-us.s3-accelerate.amazonaws.com/ttl30/519456732196384266/124015929967/v2/aeMNNB0KmUIP8rnQ996tC5Q/da01c0d7-d6e9-4f97-bb15-a8ffe3c422e8_age_spot_output.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20261102T085213Z&X-Amz-SignedHeaders=host&X-Amz-Expires=7200&X-Amz-Credential=AKIARB77EV5Y5D7DAE3S%2F20261102%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Signature=cafcc45df7f54298d867223830e5b4d5ec8a38b442be6cdd853467bb1ca9cfb9"
+        ],
+        "extra": {}
+      },
+      {
+        "type": "dark_circle_v2",
+        "uiScore": 72,
+        "rawScore": 69.55937147140503,
+        "maskUrls": [
+          "https://yce-us.s3-accelerate.amazonaws.com/ttl30/519456732196384266/124015929967/v2/aeMNNB0KmUIP8rnQ996tC5Q/da01c0d7-d6e9-4f97-bb15-a8ffe3c422e8_dark_circle_v2_output.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20261102T085213Z&X-Amz-SignedHeaders=host&X-Amz-Expires=7200&X-Amz-Credential=AKIARB77EV5Y5D7DAE3S%2F20261102%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Signature=c90d93a5f79b33a090637c0acc248740137602d933f4232b2b8795e73e43fdf3"
+        ],
+        "extra": {}
+      },
+      {
+        "type": "moisture",
+        "uiScore": 88,
+        "rawScore": 92.23638772964478,
+        "maskUrls": [
+          "https://yce-us.s3-accelerate.amazonaws.com/ttl30/519456732196384266/124015929967/v2/aeMNNB0KmUIP8rnQ996tC5Q/da01c0d7-d6e9-4f97-bb15-a8ffe3c422e8_moisture_output.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20261102T085213Z&X-Amz-SignedHeaders=host&X-Amz-Expires=7200&X-Amz-Credential=AKIARB77EV5Y5D7DAE3S%2F20261102%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Signature=a1eb609835acb4e9cf609a5981c32684d5bf3c3af12facbd71174d2a0952914e"
+        ],
+        "extra": {}
+      },
+      {
+        "type": "acne",
+        "uiScore": 99,
+        "rawScore": 100,
+        "maskUrls": [
+          "https://yce-us.s3-accelerate.amazonaws.com/ttl30/519456732196384266/124015929967/v2/aeMNNB0KmUIP8rnQ996tC5Q/da01c0d7-d6e9-4f97-bb15-a8ffe3c422e8_acne_output.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20261102T085213Z&X-Amz-SignedHeaders=host&X-Amz-Expires=7200&X-Amz-Credential=AKIARB77EV5Y5D7DAE3S%2F20261102%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Signature=309dd83fe9934d609f5f2102c5dd07fd852a7a6539e4a4d39addf189d53b9861"
+        ],
+        "extra": {}
+      },
+      {
+        "type": "all",
+        "uiScore": null,
+        "rawScore": null,
+        "maskUrls": [],
+        "extra": {
+          "score": 91.875
+        }
+      },
+      {
+        "type": "skin_age",
+        "uiScore": null,
+        "rawScore": null,
+        "maskUrls": [],
+        "extra": {
+          "score": 8
+        }
+      },
+      {
+        "type": "resize_image",
+        "uiScore": null,
+        "rawScore": null,
+        "maskUrls": [
+          "https://yce-us.s3-accelerate.amazonaws.com/ttl30/519456732196384266/124015929967/v2/aeMNNB0KmUIP8rnQ996tC5Q/da01c0d7-d6e9-4f97-bb15-a8ffe3c422e8_resize_image.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20261102T085213Z&X-Amz-SignedHeaders=host&X-Amz-Expires=7200&X-Amz-Credential=AKIARB77EV5Y5D7DAE3S%2F20261102%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Signature=8a534a2be403e61d0d26a47b4b37d7046886e35bc26f1ccc177c9eb05dffc488"
+        ],
+        "extra": {}
+      }
+    ],
+    "note": "",
+    "consentAcceptedAt": "2026-11-02T08:52:48.343Z"
+  },
+  {
+    "id": "83020b20-e216-4350-82f8-12122a31edc6",
+    "providerTaskId": "PiH3qkSXBmrni8vNDdLoT5HxHjPUhMlY5j6imJHMW8OCJyMlBTyGXkgbCOsaRwnzSpcgV8WTLEnG8Q2PXjtLzQ",
+    "status": "completed",
+    "stage": "COMPLETED",
+    "actions": [
+      "moisture",
+      "redness",
+      "texture",
+      "pore"
+    ],
+    "createdAt": "2026-11-02T08:51:13.229Z",
+    "updatedAt": "2026-11-02T08:51:18.771Z",
+    "completedAt": "2026-11-02T08:51:18.771Z",
+    "error": null,
+    "results": [
+      {
+        "type": "pore",
+        "uiScore": 79,
+        "rawScore": 75.34452867507935,
+        "maskUrls": [
+          "https://yce-us.s3-accelerate.amazonaws.com/ttl30/519456732196384266/124015835058/v2/aeMNNB0KmUIP8rnQ996tC5Q/ebbec613-eeea-4d43-8e42-e7b590353bb8_pore_output.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20261102T085038Z&X-Amz-SignedHeaders=host&X-Amz-Expires=7200&X-Amz-Credential=AKIARB77EV5Y5D7DAE3S%2F20261102%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Signature=d2981d98443017085c4b4104d0e2edd14eeb85ed1c4fc713c3cb0436054a7bcb"
+        ],
+        "extra": {}
+      },
+      {
+        "type": "redness",
+        "uiScore": 83,
+        "rawScore": 84.39356231689453,
+        "maskUrls": [
+          "https://yce-us.s3-accelerate.amazonaws.com/ttl30/519456732196384266/124015835058/v2/aeMNNB0KmUIP8rnQ996tC5Q/ebbec613-eeea-4d43-8e42-e7b590353bb8_redness_output.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20261102T085038Z&X-Amz-SignedHeaders=host&X-Amz-Expires=7200&X-Amz-Credential=AKIARB77EV5Y5D7DAE3S%2F20261102%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Signature=669cd5477656d2fbfc3fadaca6b16dac093de9db5ee7792a254b1db5ee3bb7bb"
+        ],
+        "extra": {}
+      },
+      {
+        "type": "texture",
+        "uiScore": 87,
+        "rawScore": 91.65729880332947,
+        "maskUrls": [
+          "https://yce-us.s3-accelerate.amazonaws.com/ttl30/519456732196384266/124015835058/v2/aeMNNB0KmUIP8rnQ996tC5Q/ebbec613-eeea-4d43-8e42-e7b590353bb8_texture_output.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20261102T085038Z&X-Amz-SignedHeaders=host&X-Amz-Expires=7200&X-Amz-Credential=AKIARB77EV5Y5D7DAE3S%2F20261102%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Signature=8bc6ff936adda6e417e3167c016c0562653c9095f365a25dd0666fa468b210fa"
+        ],
+        "extra": {}
+      },
+      {
+        "type": "moisture",
+        "uiScore": 73,
+        "rawScore": 58.906543254852295,
+        "maskUrls": [
+          "https://yce-us.s3-accelerate.amazonaws.com/ttl30/519456732196384266/124015835058/v2/aeMNNB0KmUIP8rnQ996tC5Q/ebbec613-eeea-4d43-8e42-e7b590353bb8_moisture_output.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20261102T085038Z&X-Amz-SignedHeaders=host&X-Amz-Expires=7200&X-Amz-Credential=AKIARB77EV5Y5D7DAE3S%2F20261102%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Signature=6497f47f9cf71ba70e41ab5160ec6a4a21dc9af96622ab278d98c309a0b18e0d"
+        ],
+        "extra": {}
+      },
+      {
+        "type": "all",
+        "uiScore": null,
+        "rawScore": null,
+        "maskUrls": [],
+        "extra": {
+          "score": 80.5
+        }
+      },
+      {
+        "type": "skin_age",
+        "uiScore": null,
+        "rawScore": null,
+        "maskUrls": [],
+        "extra": {
+          "score": 30
+        }
+      },
+      {
+        "type": "resize_image",
+        "uiScore": null,
+        "rawScore": null,
+        "maskUrls": [
+          "https://yce-us.s3-accelerate.amazonaws.com/ttl30/519456732196384266/124015835058/v2/aeMNNB0KmUIP8rnQ996tC5Q/ebbec613-eeea-4d43-8e42-e7b590353bb8_resize_image.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20261102T085038Z&X-Amz-SignedHeaders=host&X-Amz-Expires=7200&X-Amz-Credential=AKIARB77EV5Y5D7DAE3S%2F20261102%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Signature=8ad36d089dae1fbfdad817fd86a3176d2ef6920aa3985f4e1ae0f9d686f9fc36"
+        ],
+        "extra": {}
+      }
+    ],
+    "note": "",
+    "consentAcceptedAt": "2026-11-02T08:51:13.229Z"
+  },
+  {
     "id": "b0e8063b-9dcc-44da-b940-0eda2f73dad0",
     "providerTaskId": null,
     "status": "failed",

@@ -35,7 +35,7 @@ export default function Overview() {
       {/* HERO */}
       <div className="hero2">
         <div className="hero2-copy">
-          <span className="hello-chip"><i><Sparkles size={14} /></i>{greeting()}{firstName ? `, ${firstName}` : ""}</span>
+          <div className="row-wrap" style={{ alignItems: "center" }}><span className="hello-chip"><i><Sparkles size={14} /></i>{greeting()}{firstName ? `, ${firstName}` : ""}</span><span className="ai-badge lg"><Sparkles size={13} /> AI-powered skin coach</span></div>
           <h1 className="display">Your skin,<br />thoughtfully <span className="grad-text underline-swash">cared.</span></h1>
           <p>{latest ? (focus.length ? `Today's focus: ${focus.map((f) => metricMeta(f.type).label.toLowerCase()).join(" & ")}.` : "Your latest read looks steady.") : "AI skin analysis that checks your shelf before you shop."}</p>
           <div className="row-wrap">
@@ -60,7 +60,7 @@ export default function Overview() {
           <Sparkles className="sparkle" size={14} style={{ left: "40%", bottom: "18%", animationDelay: "2s" }} />
           <div className="glass-chip" style={{ left: "6%", bottom: "16%" }}>
             <span className="gi"><ScanFace size={19} /></span>
-            <span><b>{avg ?? "Ready"}{avg !== null && <span style={{ fontSize: 11, color: "var(--ink-3)" }}> /100</span>}</b><small>{latest ? "Skin score" : "Skin analysis"}</small></span>
+            <span><b>{avg ?? "Ready"}{avg !== null && <span style={{ fontSize: 11, color: "var(--ink-3)" }}> /100</span>}</b><small>{latest ? "AI skin score" : "AI skin scan"}</small></span>
           </div>
           <div className="glass-chip" style={{ right: "6%", top: "12%", animationDelay: "1.6s" }}>
             <Ring value={hasRoutine ? routinePct : 0} size={44} stroke={5} label={<span style={{ fontSize: 11 }}>{hasRoutine ? `${routinePct}%` : "—"}</span>} />
@@ -83,16 +83,16 @@ export default function Overview() {
       {/* SKIN OVERVIEW */}
       <div className="stack">
         <div className="between">
-          <h2 className="h2" style={{ fontSize: 22 }}>Skin overview</h2>
+          <h2 className="h2 row" style={{ fontSize: 22, gap: 10 }}>Skin overview <span className="ai-badge"><Sparkles size={11} /> AI</span></h2>
           {latest && <button className="link" onClick={() => s.go("profile")}>{fmtDate(latest.completedAt, { day: "numeric", month: "short" })} <ChevronRight size={15} /></button>}
         </div>
         {!s.ready ? <Skeleton h={170} r={24} /> : latest ? (
           <div className="ring-row">
             {avg !== null && (
-              <div className="ring-tile" style={{ background: "var(--grad)", color: "#fff", border: 0 }}>
-                <span className="rt-name" style={{ color: "#fff" }}><Sparkles size={15} /> Overall</span>
-                <Ring value={avg} size={92} stroke={8} color="#fff" label={<span style={{ fontSize: 24, color: "#fff" }}>{avg}</span>} />
-                <span className="rt-band" style={{ color: "rgba(255,255,255,.85)" }}>avg of {scoredMetrics(latest).length}</span>
+              <div className="ring-tile overall">
+                <span className="rt-head"><span className="rt-ico" style={{ background: "rgba(255,255,255,.22)", boxShadow: "none" }}><Sparkles size={16} /></span><span className="rt-label" style={{ color: "#fff" }}>AI Score</span></span>
+                <Ring value={avg} size={96} stroke={9} color="#fff" label={<span className="rt-num" style={{ color: "#fff" }}>{avg}</span>} />
+                <span className="rt-pill" style={{ background: "rgba(255,255,255,.22)", color: "#fff" }}><ScanFace size={12} /> {scoredMetrics(latest).length} metrics</span>
               </div>
             )}
             {scoredMetrics(latest).map((m) => <RingTile key={m.type} m={m} onClick={() => s.go("profile")} />)}

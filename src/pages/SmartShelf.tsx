@@ -1,12 +1,39 @@
 import { useEffect, useMemo, useState } from "react";
-import { AlertCircle, ArrowRight, Bookmark, BookmarkCheck, Camera, CheckCircle2, CircleSlash, Info, Layers, Loader2, Package, Search, ShieldCheck, Sparkles, X } from "lucide-react";
+import {
+  AlertCircle, ArrowRight, Bookmark, BookmarkCheck, Camera, Check, Cloud, Droplets, Eye, FlaskConical, Heart, Info, Loader2,
+  Package, Pipette, Plus, Puzzle, ScanFace, Search, ShieldCheck, Smile, Sparkle, Sparkles, Sun, Target, Wallet, Waves, X, type LucideIcon,
+} from "lucide-react";
 import { useStore } from "../store";
 import * as api from "../services/api";
-import type { CatalogProduct } from "../types";
+import type { CatalogProduct, RoutineCategory } from "../types";
 import { fmtDate, rankCandidates, type Need, type Ranked } from "../lib/engine";
-import { Meter, ProductImage, Ring } from "../components/ui";
+import { Meter, ProductImage, Ring, imgSources } from "../components/ui";
 import { ProductModal } from "../components/ProductModal";
 import { useSaved } from "../lib/saved";
+
+const CAT: Record<RoutineCategory, { icon: LucideIcon; g: string; c: string }> = {
+  Cleanser: { icon: Droplets, g: "linear-gradient(135deg,#67E8F9,#0EA5E9)", c: "#0EA5E9" },
+  Toner: { icon: Waves, g: "linear-gradient(135deg,#5EEAD4,#14B8A6)", c: "#14B8A6" },
+  Serum: { icon: Pipette, g: "linear-gradient(135deg,#C4B5FD,#7C3AED)", c: "#7C3AED" },
+  Treatment: { icon: FlaskConical, g: "linear-gradient(135deg,#F9A8D4,#DB2777)", c: "#DB2777" },
+  Exfoliant: { icon: Sparkle, g: "linear-gradient(135deg,#FDE68A,#F59E0B)", c: "#F59E0B" },
+  Moisturizer: { icon: Cloud, g: "linear-gradient(135deg,#A5B4FC,#6366F1)", c: "#6366F1" },
+  Sunscreen: { icon: Sun, g: "linear-gradient(135deg,#FCD34D,#F97316)", c: "#F97316" },
+  "Eye care": { icon: Eye, g: "linear-gradient(135deg,#DDD6FE,#8B5CF6)", c: "#8B5CF6" },
+  Mask: { icon: Smile, g: "linear-gradient(135deg,#FBCFE8,#EC4899)", c: "#EC4899" },
+  Other: { icon: Package, g: "linear-gradient(135deg,#CBD5E1,#64748B)", c: "#64748B" },
+};
+const WEIGHTS = [
+  { icon: Target, label: "Goal match", w: 35, g: "linear-gradient(135deg,#C4B5FD,#7C3AED)" },
+  { icon: Heart, label: "Preferences", w: 25, g: "linear-gradient(135deg,#F9A8D4,#DB2777)" },
+  { icon: Wallet, label: "Budget", w: 20, g: "linear-gradient(135deg,#FCD34D,#F97316)" },
+  { icon: Puzzle, label: "Fills gap", w: 20, g: "linear-gradient(135deg,#5EEAD4,#0EA5E9)" },
+];
+
+function SlotImg({ src }: { src?: string | null }) {
+  const srcs = imgSources(src); const [i, setI] = useState(0);
+  return srcs[i] ? <img src={srcs[i]} alt="" referrerPolicy="no-referrer" onError={() => setI((x) => x + 1)} /> : null;
+}
 
 export default function SmartShelf() {
   const s = useStore();
@@ -14,77 +41,88 @@ export default function SmartShelf() {
   const assigned = routine ? [...routine.AM.steps, ...routine.PM.steps].filter((x) => x.productId).length : 0;
 
   const inputs = [
-    { label: "Latest assessment", value: latest ? fmtDate(latest.completedAt) : "None yet", ok: Boolean(latest) },
-    { label: "Goals & preferences", value: profile?.goals.length ? `${profile.goals.length} goals` : "Not set", ok: Boolean(profile?.goals.length) },
-    { label: "Current routine", value: routine && (routine.AM.steps.length || routine.PM.steps.length) ? `${assigned} steps assigned` : "Not built", ok: Boolean(routine?.AM.steps.length) },
-    { label: "Owned products", value: `${shelf.length} on shelf`, ok: shelf.length > 0 },
-    { label: "Budget", value: profile?.budget != null ? `₹${profile.budget} / product` : "Not set", ok: profile?.budget != null },
+    { icon: ScanFace, label: "AI scan", value: latest ? fmtDate(latest.completedAt, { day: "numeric", month: "short" }) : "None", ok: Boolean(latest) },
+    { icon: Target, label: "Goals", value: profile?.goals.length ? String(profile.goals.length) : "—", ok: Boolean(profile?.goals.length) },
+    { icon: Sun, label: "Routine", value: routine && (routine.AM.steps.length || routine.PM.steps.length) ? `${assigned} set` : "—", ok: Boolean(routine?.AM.steps.length) },
+    { icon: Package, label: "Shelf", value: String(shelf.length), ok: shelf.length > 0 },
+    { icon: Wallet, label: "Budget", value: profile?.budget != null ? `₹${profile.budget}` : "—", ok: profile?.budget != null },
   ];
+
+  const slots = coverage.needs.map((need) => ({ need, owned: coverage.covered.find((c) => c.need.category === need.category)?.products[0] || null }));
 
   return (
     <section className="page">
       <div className="page-head">
         <div>
-          <span className="eyebrow"><ShieldCheck size={13} /> Smart Skin-to-Shelf engine</span>
-          <h1 className="h1" style={{ marginTop: 10 }}>Skin-to-<span className="grad-text">Shelf.</span></h1>
-          <p className="lead">We check what you own before suggesting anything.</p>
+          <span className="row" style={{ gap: 8 }}><span className="ai-badge"><Sparkles size={11} /> AI engine</span><span className="eyebrow">Skin-to-Shelf</span></span>
+          <h1 className="h1" style={{ marginTop: 10 }}>Shop <span className="grad-text">smarter.</span></h1>
+          <p className="lead">Your shelf, checked before anything new.</p>
         </div>
       </div>
 
-      <div className="card pad-lg">
-        <div className="coverage-hero">
-          <Ring value={coverage.percent} size={176} stroke={14} label={<span>{coverage.percent}<span style={{ fontSize: 22 }}>%</span></span>} sub="routine covered" />
-          <div className="stack" style={{ gap: 18 }}>
-            <div>
-              <h2 className="h2">{shelf.length === 0 ? "Start with what you already own." : coverage.noPurchaseNeeded ? "Everything your routine needs is already on your shelf." : `${coverage.covered.length} of ${coverage.needs.length} steps covered by products you own.`}</h2>
-              <p className="body" style={{ marginTop: 8 }}>{shelf.length === 0 ? "Your shelf is empty, so every step reads as a gap. Add the products you use today first — you may already be covered." : coverage.noPurchaseNeeded ? "No additional purchase is currently identified as necessary. Keep using what you have." : `Genuine gap${coverage.missing.length > 1 ? "s" : ""}: ${coverage.missing.map((m) => m.role.toLowerCase()).join(", ")}.`}</p>
-            </div>
-            <div className="row-wrap">
-              {inputs.map((i) => <span key={i.label} className={`chip static ${i.ok ? "on" : ""}`} title={i.label}>{i.ok ? <CheckCircle2 size={13} /> : <CircleSlash size={13} />}{i.label}: <b style={{ fontWeight: 600 }}>{i.value}</b></span>)}
-            </div>
-            {!latest && <div className="callout"><Camera size={18} /><div>Run a skin analysis to add focus-area steps. Right now only your core routine{profile?.goals.length ? " and goals are" : " is"} considered. <button className="link" onClick={() => s.go("analysis")}>Analyse →</button></div></div>}
+      {/* HERO: coverage + visual shelf */}
+      <div className="shelf-hero">
+        <div className="sh-left">
+          <div className="sh-ring">
+            <Ring value={coverage.percent} size={190} stroke={16} color="#fff" label={<span style={{ color: "#fff", fontSize: 54 }}>{coverage.percent}<span style={{ fontSize: 22 }}>%</span></span>} sub="covered" />
+          </div>
+          <div className="sh-count">
+            <span><b>{coverage.covered.length}</b><small><Check size={12} /> Owned</small></span>
+            <i />
+            <span><b>{coverage.missing.length}</b><small><Plus size={12} /> Gaps</small></span>
+          </div>
+        </div>
+        <div className="sh-right">
+          <h2 className="h2" style={{ color: "#fff" }}>{shelf.length === 0 ? "Add what you own first" : coverage.noPurchaseNeeded ? "Fully covered — no purchase needed" : "Your routine shelf"}</h2>
+          <div className="shelf-slots">
+            {slots.map(({ need, owned }) => {
+              const c = CAT[need.category] || CAT.Other; const I = c.icon;
+              return (
+                <a key={need.category} href={owned ? undefined : `#gap-${need.category}`} className={`slot ${owned ? "full" : "empty"}`} onClick={owned ? () => s.go("my-products") : undefined} title={owned ? `${owned.brand} ${owned.name}` : need.reason}>
+                  <span className="slot-art" style={{ background: owned ? "#fff" : "transparent" }}>
+                    {owned ? <SlotImg src={owned.imageUrl} /> : null}
+                    <span className="slot-ico" style={{ background: c.g }}><I size={owned?.imageUrl ? 13 : 20} /></span>
+                  </span>
+                  <b>{need.role}</b>
+                  <span className={`slot-tag ${owned ? "ok" : "gap"}`}>{owned ? <><Check size={11} /> Owned</> : <><Plus size={11} /> Gap</>}</span>
+                </a>
+              );
+            })}
+          </div>
+          <div className="ai-inputs">
+            <span className="tiny" style={{ color: "rgba(255,255,255,.75)", fontWeight: 700 }}>AI inputs</span>
+            {inputs.map((x) => { const I = x.icon; return (
+              <span key={x.label} className={`ai-in ${x.ok ? "ok" : ""}`} title={x.label}><I size={13} />{x.value}</span>
+            ); })}
           </div>
         </div>
       </div>
+
+      {!latest && <div className="callout"><Camera size={18} /><div>Run an AI scan to add focus-area steps. <button className="link" onClick={() => s.go("analysis")}>Scan now →</button></div></div>}
 
       {coverage.noPurchaseNeeded && shelf.length > 0 && (
         <div className="no-buy">
           <div className="seal"><ShieldCheck size={30} /></div>
           <div style={{ flex: 1 }}>
-            <span className="eyebrow" style={{ color: "var(--sage-ink)" }}>No purchase recommended</span>
-            <h2 className="h2" style={{ marginTop: 6 }}>You may not need to buy anything.</h2>
-            <p className="body" style={{ marginTop: 6 }}>Your {shelf.length} product{shelf.length === 1 ? "" : "s"} cover every step your analysis and goals call for. The smartest skincare purchase is sometimes none at all.</p>
+            <span className="eyebrow" style={{ color: "var(--sage-ink)" }}>AI verdict</span>
+            <h2 className="h2" style={{ marginTop: 6 }}>You don't need to buy anything.</h2>
           </div>
-          <button className="btn btn-dark" onClick={() => s.go("routine")}>Continue my routine <ArrowRight size={15} /></button>
+          <button className="btn btn-dark" onClick={() => s.go("routine")}>My routine <ArrowRight size={15} /></button>
         </div>
       )}
 
-      <div className="grid-2" style={{ alignItems: "start" }}>
-        <div className="stack">
-          <div className="between"><h3 className="h3">Already covered</h3><span className="badge good">{coverage.covered.length}</span></div>
-          {coverage.covered.length ? coverage.covered.map(({ need, products }) => (
-            <div key={need.category} className="cov-item ok">
-              <span className="ci"><CheckCircle2 size={19} /></span>
-              <span style={{ minWidth: 0 }}><b>{need.role}</b><small>{products[0].brand} · {products[0].name}{products.length > 1 ? ` (+${products.length - 1} more)` : ""}</small></span>
-              <span className="badge good">Owned</span>
-            </div>
-          )) : <div className="card" style={{ padding: 20 }}><p className="small">Nothing covered yet. <button className="link" onClick={() => s.go("my-products")}>Add products you own →</button></p></div>}
-        </div>
-        <div className="stack">
-          <div className="between"><h3 className="h3">Genuine gaps</h3><span className={`badge ${coverage.missing.length ? "focus" : "good"}`}>{coverage.missing.length}</span></div>
-          {coverage.missing.length ? coverage.missing.map((need) => (
-            <div key={need.category} className="cov-item gap">
-              <span className="ci"><AlertCircle size={19} /></span>
-              <span style={{ minWidth: 0 }}><b>{need.role}{need.optional && <span className="badge na" style={{ marginLeft: 8 }}>optional</span>}</b><small title={need.reason}>{need.reason}</small></span>
-              <a className="link" href={`#gap-${need.category}`}>Options</a>
-            </div>
-          )) : <div className="callout sage"><CheckCircle2 size={18} /><div>No gaps. Nothing to recommend.</div></div>}
-        </div>
-      </div>
-
       {coverage.missing.map((need) => <GapRecommendations key={need.category} need={need} />)}
 
-      <div className="callout"><Info size={18} /><div><b>How ranking works.</b> Score = 0.35 × goal match + 0.25 × preference fit + 0.20 × budget fit + 0.20 × fills-the-gap. Components without data (e.g. price, which Open Beauty Facts doesn't provide) are left out and the remaining weights are rescaled — never guessed. It's a product-ranking heuristic, not a clinical suitability score.</div></div>
+      {/* Ranking formula infographic */}
+      <div className="card formula">
+        <span className="row" style={{ gap: 10 }}><span className="icon-bubble grad sm"><Sparkles size={15} /></span><b className="h4">How the AI ranks products</b></span>
+        <div className="formula-bar">
+          {WEIGHTS.map((w) => { const I = w.icon; return (
+            <div key={w.label} className="fseg" style={{ flex: w.w, background: w.g }}><I size={16} /><b>{w.w}%</b><small>{w.label}</small></div>
+          ); })}
+        </div>
+        <p className="tiny row" style={{ gap: 6 }}><Info size={12} /> Missing data (e.g. price) is skipped, never guessed.</p>
+      </div>
     </section>
   );
 }
@@ -97,6 +135,7 @@ function GapRecommendations({ need }: { need: Need }) {
   const [err, setErr] = useState("");
   const [detail, setDetail] = useState<Ranked | null>(null);
   const [open, setOpen] = useState<string | null>(null);
+  const c = CAT[need.category] || CAT.Other; const CI = c.icon;
 
   async function load() {
     setState("loading"); setErr("");
@@ -109,62 +148,67 @@ function GapRecommendations({ need }: { need: Need }) {
   const ranked = useMemo(() => rankCandidates(need, items, s.profile, owned).filter((r) => !saved.dismissed.includes(r.product.code)).slice(0, 3), [need, items, s.profile, owned, saved.dismissed]);
 
   return (
-    <div className="card pad-lg" id={`gap-${need.category}`} style={{ scrollMarginTop: 90 }}>
-      <div className="card-head">
-        <div>
-          <span className="eyebrow"><Layers size={13} /> Gap · {need.category}</span>
-          <h3 className="h2" style={{ marginTop: 8 }}>{need.role}</h3>
-          <p className="body" style={{ marginTop: 6, maxWidth: 640 }}>{need.reason}{need.keywords.length ? ` Looking for: ${need.keywords.slice(0, 4).join(", ")}.` : ""}</p>
-        </div>
-        <span className="badge">Searched “{need.query}”</span>
-      </div>
-
-      {state === "loading" && <div className="row small" style={{ padding: "20px 0" }}><Loader2 size={16} className="spin" /> Searching the Open Beauty Facts catalog…</div>}
-      {state === "error" && <div className="callout rose"><AlertCircle size={18} /><div>{err} <button className="link" onClick={load}>Retry</button></div></div>}
-      {state === "done" && ranked.length === 0 && <div className="callout"><Search size={18} /><div>No suitable catalog item was found for this step. We won't invent one. <button className="link" onClick={() => s.go("discover")}>Search manually →</button></div></div>}
-
-      <div className="stack">
-        {ranked.map((r) => (
-          <div key={r.product.code} className="rec-card">
-            <ProductImage src={r.product.imageUrl} alt={r.product.name} />
-            <div className="stack-sm" style={{ minWidth: 0 }}>
-              <div className="between" style={{ alignItems: "flex-start" }}>
-                <div style={{ minWidth: 0 }}><span className="pbrand">{r.product.brand}</span><h4 className="pname" style={{ fontSize: 15, marginTop: 4 }}>{r.product.name}</h4></div>
-                {r.score !== null && <span className="score-pill" title="SkinWise ranking score">{r.score}<small>/100</small></span>}
-                {r.score === null && <span className="badge na" title="Not enough catalog data to score fairly">Not scored</span>}
-              </div>
-              <p className="small" style={{ color: "var(--ink-2)" }}>
-                {r.matched.length ? <>Fills your <b>{need.role.toLowerCase()}</b> gap and lists <b>{r.matched.join(", ")}</b>.</> : <>Catalogued for your <b>{need.role.toLowerCase()}</b> gap.{!r.product.ingredients && " Ingredients unavailable — can't check goals or preferences."}</>}
-                {r.flags.length > 0 && <span style={{ color: "#9A4F3D" }}> Note: {r.flags.join("; ")}.</span>}
-              </p>
-              <div className="row-wrap" style={{ alignItems: "center" }}>
-                <span className="badge na">Price unavailable</span>
-                {!r.product.ingredients && <span className="badge na">Ingredients unavailable</span>}
-                <button className="link" style={{ fontSize: 12 }} onClick={() => setOpen(open === r.product.code ? null : r.product.code)}>{open === r.product.code ? "Hide" : "Why this score?"}</button>
-              </div>
-              {open === r.product.code && (
-                <div className="score-break">
-                  {r.components.map((c) => (
-                    <div key={c.key} className="sb" title={c.note}>
-                      <span>{c.label} <span className="muted">×{c.weight}</span></span>
-                      {c.value !== null ? <Meter value={c.value} /> : <span className="tiny">{c.note}</span>}
-                      <em>{c.value ?? "—"}</em>
-                    </div>
-                  ))}
-                </div>
-              )}
-              <div className="row-wrap" style={{ marginTop: 4 }}>
-                <button className="btn btn-primary btn-sm" onClick={() => setDetail(r)}>Details</button>
-                <button className="btn btn-ghost btn-sm" onClick={() => { saved.toggle(r.product); s.toast(saved.isSaved(r.product.code) ? "Removed from saved" : "Saved for later"); }}>{saved.isSaved(r.product.code) ? <BookmarkCheck size={14} /> : <Bookmark size={14} />}{saved.isSaved(r.product.code) ? "Saved" : "Save"}</button>
-                <button className="btn btn-sm" style={{ color: "var(--ink-3)" }} onClick={() => saved.dismiss(r.product.code)}><X size={14} /> Dismiss</button>
-              </div>
-            </div>
+    <div className="gap-block" id={`gap-${need.category}`} style={{ scrollMarginTop: 90 }}>
+      <div className="gap-head">
+        <span className="gap-ico" style={{ background: c.g }}><CI size={24} /></span>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
+            <h3 className="h3">{need.role}</h3>
+            <span className="mchip warn"><Plus size={11} /> Gap</span>
+            {need.source === "assessment" && <span className="mchip opt"><ScanFace size={11} /> From AI scan</span>}
+            {need.source === "goal" && <span className="mchip opt"><Target size={11} /> From goals</span>}
           </div>
-        ))}
+          {need.keywords.length > 0 && <div className="meta-chips" style={{ marginTop: 6 }}>{need.keywords.slice(0, 4).map((k) => <span key={k} className="mchip"><FlaskConical size={11} /> {k}</span>)}</div>}
+        </div>
       </div>
-      {ranked.length > 0 && <p className="tiny" style={{ marginTop: 14 }}><Sparkles size={11} style={{ verticalAlign: "-1px" }} /> Already own something for this step? <button className="link" style={{ fontSize: 11 }} onClick={() => s.go("my-products")}>Add it to your shelf</button> and this gap closes — no purchase needed.</p>}
+
+      {state === "loading" && <div className="rec-grid">{[0, 1, 2].map((i) => <div key={i} className="pcard"><div className="skeleton" style={{ aspectRatio: "1", margin: 10, borderRadius: 20 }} /><div className="pbody"><div className="skeleton" style={{ height: 14 }} /></div></div>)}</div>}
+      {state === "error" && <div className="callout rose"><AlertCircle size={18} /><div>{err} <button className="link" onClick={load}>Retry</button></div></div>}
+      {state === "done" && ranked.length === 0 && <div className="callout"><Search size={18} /><div>No matching catalog item — we won't invent one. <button className="link" onClick={() => s.go("discover")}>Search →</button></div></div>}
+
+      {ranked.length > 0 && (
+        <div className="rec-grid">
+          {ranked.map((r, idx) => (
+            <article key={r.product.code} className="pcard rec3">
+              <ProductImage src={r.product.imageUrl} alt={r.product.name}>
+                <div className="corner">
+                  {idx === 0 ? <span className="ai-badge"><Sparkles size={11} /> Top match</span> : <span />}
+                  <button className="heart-btn" onClick={() => { saved.toggle(r.product); s.toast(saved.isSaved(r.product.code) ? "Removed from saved" : "Saved for later"); }} aria-label="Save">{saved.isSaved(r.product.code) ? <BookmarkCheck size={15} /> : <Bookmark size={15} />}</button>
+                </div>
+                <div className="score-orb">{r.score !== null ? <Ring value={r.score} size={58} stroke={6} label={<span style={{ fontSize: 15 }}>{r.score}</span>} /> : <span className="badge na">Not scored</span>}</div>
+              </ProductImage>
+              <div className="pbody">
+                <span className="pbrand">{r.product.brand}</span>
+                <h4 className="pname">{r.product.name}</h4>
+                <div className="meta-chips">
+                  {r.matched.slice(0, 3).map((m) => <span key={m} className="mchip ok"><Check size={11} /> {m}</span>)}
+                  {r.flags.length > 0 && <span className="mchip warn"><AlertCircle size={11} /> {r.flags[0]}</span>}
+                  {!r.product.ingredients && <span className="mchip">No ingredients</span>}
+                  <span className="mchip"><Wallet size={11} /> No price</span>
+                </div>
+                {open === r.product.code && (
+                  <div className="score-break" style={{ marginTop: 8 }}>
+                    {r.components.map((comp) => (
+                      <div key={comp.key} className="sb" title={comp.note}>
+                        <span>{comp.label}</span>
+                        {comp.value !== null ? <Meter value={comp.value} /> : <span className="tiny">n/a</span>}
+                        <em>{comp.value ?? "—"}</em>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div className="pfoot">
+                <button className="btn btn-primary btn-sm" onClick={() => setDetail(r)}>Details</button>
+                <button className="icon-btn sm" onClick={() => setOpen(open === r.product.code ? null : r.product.code)} aria-label="Why this score" title="Why this score?"><Info size={14} /></button>
+                <button className="icon-btn sm" onClick={() => saved.dismiss(r.product.code)} aria-label="Dismiss" title="Dismiss"><X size={14} /></button>
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
+      {ranked.length > 0 && <button className="tiny link" style={{ fontSize: 12 }} onClick={() => s.go("my-products")}><Package size={12} /> Already own one? Add it — gap closes.</button>}
       {detail && <ProductModal product={detail.product} keywords={need.keywords} defaultCategory={need.category} reason={`Suggested for your ${need.role.toLowerCase()} gap. ${need.reason}`} onClose={() => setDetail(null)} />}
-      {state === "idle" && <Package size={0} />}
     </div>
   );
 }

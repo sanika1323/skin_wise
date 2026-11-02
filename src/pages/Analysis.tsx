@@ -44,12 +44,30 @@ export default function Analysis() {
     streamRef.current = null;
     setCamOn(false);
   }
+  // Crop the frame to the face oval so the face fills ~70% of the photo width
+  // (YouCam rejects images where the face is under ~60% of the width).
   function snap() {
     const v = videoRef.current;
     if (!v || !v.videoWidth) return;
+    const vw = v.videoWidth, vh = v.videoHeight;
+    const cw = v.clientWidth || vw, ch = v.clientHeight || vh;
+    const scale = Math.max(cw / vw, ch / vh); // object-fit: cover
+    const ox = (cw - vw * scale) / 2, oy = (ch - vh * scale) / 2;
+    const ovalW = Math.min(cw * 0.58, 300);
+    let cropW = (ovalW * 1.3) / scale; // oval + a little margin, in video pixels
+    let cropH = cropW * (4 / 3);
+    if (cropH > vh) { cropH = vh; cropW = cropH * 0.75; }
+    if (cropW > vw) { cropW = vw; cropH = Math.min(vh, cropW * (4 / 3)); }
+    const cxV = (cw / 2 - ox) / scale; // horizontally centred, so mirroring doesn't matter
+    const cyV = (ch * 0.46 - oy) / scale;
+    const sx = Math.max(0, Math.min(vw - cropW, cxV - cropW / 2));
+    const sy = Math.max(0, Math.min(vh - cropH, cyV - cropH / 2));
+    const outW = Math.round(Math.min(1440, Math.max(720, cropW)));
+    const outH = Math.round(outW * (cropH / cropW));
     const c = document.createElement("canvas");
-    c.width = v.videoWidth; c.height = v.videoHeight;
-    c.getContext("2d")?.drawImage(v, 0, 0);
+    c.width = outW; c.height = outH;
+    const ctx = c.getContext("2d");
+    if (ctx) { ctx.imageSmoothingQuality = "high"; ctx.drawImage(v, sx, sy, cropW, cropH, 0, 0, outW, outH); }
     setFlash(true); window.setTimeout(() => setFlash(false), 350);
     c.toBlob((b) => { if (b) { pick(new File([b], `selfie-${Date.now()}.jpg`, { type: "image/jpeg" })); stopCamera(); } }, "image/jpeg", 0.92);
   }
@@ -175,7 +193,7 @@ export default function Analysis() {
               <div className="cam-wrap">
                 <video ref={videoRef} autoPlay playsInline muted />
                 <div className="oval" />
-                <span className="cam-hint"><ScanFace size={13} style={{ verticalAlign: "-2px" }} /> Fit your face in the oval</span>
+                <span className="cam-hint"><ScanFace size={13} style={{ verticalAlign: "-2px" }} /> Fill the oval with your face</span>
                 {flash && <div className="flash" />}
                 <div className="cam-bar">
                   <button className="icon-btn" style={{ background: "rgba(255,255,255,.2)", color: "#fff", borderColor: "transparent" }} onClick={stopCamera} aria-label="Close camera"><X size={18} /></button>
