@@ -3,7 +3,7 @@ import { ArrowRight, Camera, Check, Pencil, Plus, Save, X } from "lucide-react";
 import { useStore } from "../store";
 import type { Profile } from "../types";
 import { Empty, Meter, Source } from "../components/ui";
-import { band, displayScore, fmtDate, metricMeta } from "../lib/engine";
+import { SUMMARY_TYPES, band, displayScore, fmtDate, metricMeta } from "../lib/engine";
 
 const GOALS = ["Deeper hydration", "Calm redness", "Smoother texture", "Refine pores", "Clearer skin", "Balance oil", "Brighter glow", "Even tone", "Soften fine lines", "Brighter eyes", "Strengthen barrier"];
 const SKIN_TYPES = ["Not sure", "Normal", "Dry", "Oily", "Combination", "Sensitive"];
@@ -55,7 +55,7 @@ export default function ProfilePage() {
           {latest ? (
             <div className="card stack">
               <div><h3 className="h3">What YouCam observed</h3><p className="small" style={{ marginTop: 4 }}>Read-only. A new analysis creates a new record.</p></div>
-              {latest.results.filter((m) => m.type !== "skin_type").map((m) => {
+              {latest.results.filter((m) => m.type !== "skin_type" && !SUMMARY_TYPES.has(m.type)).map((m) => {
                 const v = displayScore(m); const meta = metricMeta(m.type);
                 return (
                   <div className="metric-mini" key={m.type}>

@@ -7,6 +7,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import multer from 'multer';
 import { recommendForNeed, IMAGE_HOSTS } from './recommend.js';
+import { getBin, setBin, getJson, setJson } from './diskcache.js';
 
 dotenv.config({ path: fileURLToPath(new URL('../.env', import.meta.url)) }); // works from any working directory
 const app = express();
@@ -156,6 +157,9 @@ app.get('/api/health', (_req, res) => {
 app.get('/api/products/search', async (req, res) => {
   const q = String(req.query.q || '').trim();
   if (q.length < 2) return res.status(400).json({ error: 'Enter at least 2 characters to search.' });
+  const cacheKey = `obf:${q.toLowerCase()}`;
+  const cachedSearch = await getJson(cacheKey);
+  if (cachedSearch) return res.json(cachedSearch);
   try {
     const url = new URL(`${BEAUTY_FACTS}/cgi/search.pl`);
     url.searchParams.set('search_terms', q);
@@ -175,7 +179,9 @@ app.get('/api/products/search', async (req, res) => {
       .filter(p => p.code && p.name && p.brand)
       .sort((a, b) => Number(Boolean(b.imageUrl)) - Number(Boolean(a.imageUrl)))
       .slice(0, 24);
-    return res.json({ source: 'Open Beauty Facts', count: products.length, products });
+    const payload2 = { source: 'Open Beauty Facts', count: products.length, products };
+    await setJson(cacheKey, payload2);
+    return res.json(payload2);
   } catch (error) {
     console.error('Product search failed:', error.message);
     return res.status(502).json({ error: 'The product catalog is temporarily unavailable. Try again shortly.' });
@@ -187,12 +193,16 @@ const IMG_HOSTS = IMAGE_HOSTS;
 app.get('/api/img', async (req, res) => {
   const u = String(req.query.u || '');
   if (!IMG_HOSTS.test(u)) return res.status(400).end();
+  const hit = await getBin(u);
+  if (hit) { res.set({ 'Content-Type': hit.type, 'Cache-Control': 'public, max-age=86400' }); return res.send(hit.body); }
   try {
     const r = await fetch(u, { headers: { 'User-Agent': 'SkinWiseAI/1.0 (catalog image)' }, signal: AbortSignal.timeout(12000) });
     const type = r.headers.get('content-type') || '';
     if (!r.ok || !type.startsWith('image/')) return res.status(404).end();
+    const body = Buffer.from(await r.arrayBuffer());
+    await setBin(u, body, type);
     res.set({ 'Content-Type': type, 'Cache-Control': 'public, max-age=86400' });
-    res.send(Buffer.from(await r.arrayBuffer()));
+    res.send(body);
   } catch { res.status(504).end(); }
 });
 

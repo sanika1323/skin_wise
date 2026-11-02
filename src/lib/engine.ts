@@ -57,7 +57,7 @@ export function band(score: number | null): { label: string; tone: "good" | "mid
 }
 
 export const scoredMetrics = (a?: Assessment | null) =>
-  (a?.results || []).filter((m) => displayScore(m) !== null && m.type !== "skin_type");
+  (a?.results || []).filter((m) => displayScore(m) !== null && m.type !== "skin_type" && !SUMMARY_TYPES.has(m.type));
 
 /** Lowest returned scores in the "Focus area" band (< 65), at most two. */
 export function focusAreas(a?: Assessment | null): SkinMetric[] {
@@ -67,7 +67,21 @@ export function focusAreas(a?: Assessment | null): SkinMetric[] {
     .slice(0, 2);
 }
 
+/** Summary outputs YouCam returns alongside the per-concern metrics (not concerns themselves). */
+export const SUMMARY_TYPES = new Set(["all", "skin_age", "resize_image"]);
+const extraScore = (a: Assessment | null | undefined, type: string) => {
+  const v = a?.results.find((m) => m.type === type)?.extra?.score;
+  return typeof v === "number" && Number.isFinite(v) ? v : null;
+};
+/** YouCam's own overall skin score ("all"), when returned. */
+export const providerOverall = (a?: Assessment | null) => { const v = extraScore(a, "all"); return v === null ? null : Math.round(v); };
+/** YouCam's estimated skin age, when returned. */
+export const skinAge = (a?: Assessment | null) => { const v = extraScore(a, "skin_age"); return v === null ? null : Math.round(v); };
+
+/** Overall score: YouCam's own "all" score when present, otherwise the mean of returned ui_scores. */
 export function averageScore(a?: Assessment | null): number | null {
+  const p = providerOverall(a);
+  if (p !== null) return p;
   const s = scoredMetrics(a).map((m) => displayScore(m) as number);
   return s.length ? Math.round(s.reduce((x, y) => x + y, 0) / s.length) : null;
 }

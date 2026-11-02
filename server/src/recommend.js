@@ -13,14 +13,18 @@
 
 const PRICEE = (process.env.PRICEE_BASE_URL || 'https://pricee.com').replace(/\/$/, '');
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36';
-const TTL = 6 * 60 * 60 * 1000; // 6h cache — prices refresh several times a day
+import { getJson, setJson, DEFAULT_TTL } from './diskcache.js';
+const TTL = DEFAULT_TTL; // 6h by default — prices refresh several times a day
 const cache = new Map();
 
 async function cached(key, fn) {
   const hit = cache.get(key);
   if (hit && Date.now() - hit.at < TTL) return hit.value;
+  const disk = await getJson(key, TTL);
+  if (disk !== undefined) { cache.set(key, { at: Date.now(), value: disk }); return disk; }
   const value = await fn();
   cache.set(key, { at: Date.now(), value });
+  await setJson(key, value);
   if (cache.size > 500) cache.delete(cache.keys().next().value);
   return value;
 }
@@ -193,7 +197,12 @@ export async function recommendForNeed(need, profile, budget, exclude = []) {
   if (budget) pool = pool.filter((l) => l.price <= budget);
   const units = pool.filter((l) => l.size).map((l) => l.price / toMl(l.size)).sort((a, b) => a - b);
   const priceSpan = { max: Math.max(0, ...pool.map((l) => l.price)), medianUnit: units.length ? units[Math.floor(units.length / 2)] : null };
-  const ranked = pool.map((l) => ({ l, s: score(l, need, profile, budget, priceSpan) })).sort((a, b) => b.s.total - a.s.total).slice(0, 3);
+  const ranked = [];
+  for (const r of pool.map((l) => ({ l, s: score(l, need, profile, budget, priceSpan) })).sort((a, b) => b.s.total - a.s.total)) {
+    if (ranked.some((x) => shortName(x.l.title).toLowerCase() === shortName(r.l.title).toLowerCase())) continue; // no look-alike duplicates
+    ranked.push(r);
+    if (ranked.length === 3) break;
+  }
   const products = [];
   for (const { l, s } of ranked) {
     const offers = await compareOffers(l);

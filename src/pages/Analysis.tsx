@@ -3,7 +3,7 @@ import { AlertCircle, ArrowRight, Camera, Check, Glasses, ImagePlus, Info, Light
 import { useStore } from "../store";
 import * as api from "../services/api";
 import type { Assessment } from "../types";
-import { ANALYSIS_OPTIONS, averageScore, fmtDate, focusAreas, metricMeta, scoredMetrics } from "../lib/engine";
+import { ANALYSIS_OPTIONS, SUMMARY_TYPES, averageScore, fmtDate, focusAreas, metricMeta, providerOverall, scoredMetrics, skinAge } from "../lib/engine";
 import { MetricCard, MetricIcon, Ring } from "../components/ui";
 
 const ACTIVE_KEY = "skinwise.activeAnalysis";
@@ -294,7 +294,8 @@ function Results({ a, preview, onRetake }: { a: Assessment; preview: string; onR
   const s = useStore();
   const avg = averageScore(a);
   const focus = focusAreas(a);
-  const metrics = a.results;
+  const metrics = a.results.filter((m) => !SUMMARY_TYPES.has(m.type));
+  const age = skinAge(a);
   const missing = a.actions.filter((x) => !metrics.some((m) => m.type.replace(/^hd_/, "") === x));
   return (
     <>
@@ -305,7 +306,7 @@ function Results({ a, preview, onRetake }: { a: Assessment; preview: string; onR
           <h2 className="h2" style={{ marginTop: 8, fontSize: 30 }}>{focus.length ? <>Focus on <em className="grad-text" style={{ fontStyle: "normal" }}>{focus.map((f) => metricMeta(f.type).label.toLowerCase()).join(" & ")}</em></> : "A steady, balanced read"}</h2>
           <p className="body" style={{ marginTop: 8, maxWidth: 560 }}>{focus.length ? `${focus.length > 1 ? "These were" : "This was"} the lowest of the ${scoredMetrics(a).length} scores YouCam returned, in SkinWise's focus band. It now shapes your routine and shelf check.` : `None of the ${scoredMetrics(a).length} returned scores fell into the focus band (below 65). Your routine can stay simple.`}</p>
         </div>
-        <Ring value={avg} size={128} sub="avg ui_score" />
+        <div style={{ display: "grid", justifyItems: "center", gap: 10 }}><Ring value={avg} size={128} sub={providerOverall(a) !== null ? "YouCam overall" : "avg ui_score"} />{age !== null && <span className="badge" style={{ height: 28, fontSize: 12.5 }}>Skin age · {age}</span>}</div>
       </div>
 
       {metrics.length ? <div className="grid-3">{metrics.map((m, i) => <MetricCard key={`${m.type}-${i}`} m={m} />)}</div> : <div className="callout amber"><Info size={18} /><div>YouCam completed the task but returned no measurements for the selected concerns.</div></div>}

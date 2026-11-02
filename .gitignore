@@ -4,3 +4,4 @@ dist/
 server/node_modules/
 server/.env
 server/data/shelf.json
+server/data/cache/

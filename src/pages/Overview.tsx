@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { ArrowRight, Calendar, Camera, Check, ChevronRight, Package, ScanFace, ShieldCheck, Sparkles, Sun, Moon, UserRound, ShoppingBag } from "lucide-react";
+import { Hourglass, ArrowRight, Calendar, Camera, Check, ChevronRight, Package, ScanFace, ShieldCheck, Sparkles, Sun, Moon, UserRound, ShoppingBag } from "lucide-react";
 import { useStore } from "../store";
 import { Empty, ProductImage, Ring, RingTile, Skeleton } from "../components/ui";
-import { averageScore, categorize, fmtDate, greeting, metricMeta, focusAreas, scoredMetrics, todayKey } from "../lib/engine";
+import { skinAge, averageScore, categorize, fmtDate, greeting, metricMeta, focusAreas, scoredMetrics, todayKey } from "../lib/engine";
 
 // Decorative editorial portrait (not the user). Falls back to a soft gradient orb if it can't load.
 const HERO_PHOTO = "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=1100&q=85";
@@ -93,6 +93,13 @@ export default function Overview() {
                 <span className="rt-head"><span className="rt-ico" style={{ background: "rgba(255,255,255,.22)", boxShadow: "none" }}><Sparkles size={16} /></span><span className="rt-label" style={{ color: "#fff" }}>AI Score</span></span>
                 <Ring value={avg} size={96} stroke={9} color="#fff" label={<span className="rt-num" style={{ color: "#fff" }}>{avg}</span>} />
                 <span className="rt-pill" style={{ background: "rgba(255,255,255,.22)", color: "#fff" }}><ScanFace size={12} /> {scoredMetrics(latest).length} metrics</span>
+              </div>
+            )}
+            {skinAge(latest) !== null && (
+              <div className="ring-tile v3" style={{ ["--hue" as string]: "#EC4899", ["--hue-soft" as string]: "#EC48991f" }}>
+                <span className="rt-head"><span className="rt-ico"><Hourglass size={16} /></span><span className="rt-label">Skin age</span></span>
+                <div className="age-orb"><b>{skinAge(latest)}</b><small>years</small></div>
+                <span className="rt-pill t-good"><Sparkles size={12} /> YouCam AI</span>
               </div>
             )}
             {scoredMetrics(latest).map((m) => <RingTile key={m.type} m={m} onClick={() => s.go("profile")} />)}
